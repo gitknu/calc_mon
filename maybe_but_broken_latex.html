@@ -1,0 +1,202 @@
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Розрахунок показника І1</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #f5f5f5;
+        }
+        .calculator {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+        }
+        .indicator-group {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .indicator-group h3 {
+            margin: 0 0 10px 0;
+            font-size: 1em;
+            color: #2c3e50;
+        }
+        .year-inputs {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .year-input {
+            display: flex;
+            flex-direction: column;
+        }
+        .year-input label {
+            font-size: 0.9em;
+            margin-bottom: 4px;
+            color: #555;
+        }
+        input {
+            padding: 6px;
+            margin: 2px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        #result {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #e8f5e9;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        #result h3 {
+            margin: 0 0 8px 0;
+            font-size: 1em;
+        }
+        .formula {
+            text-align: center;
+            margin: 10px 0;
+            font-size: 1em;
+            color: #888;
+        }
+        .formula .highlight {
+            color: #000;
+            transition: color 0.3s ease;
+        }
+        h1 {
+            font-size: 1.5em;
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+        p {
+            font-size: 0.9em;
+            margin: 0 0 10px 0;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1>Калькулятор показника І1</h1>
+        <p><b>І1</b> - Питомий показник кількості аспірантів, наукових працівників (далі - НП) та/або науково-педагогічних працівників (далі - НПП), яким присуджено науковий ступінь доктора філософії (кандидата наук) / освітньо-творчий ступінь доктора мистецтва, на 1 особу за науковим напрямом (НП + НПП + аспіранти денної форми навчання)</p>
+        <div class="formula" id="formulaDisplay"></div>
+        <div id="indicatorsContainer"></div>
+        <div id="result">
+            <h3>Результат:</h3>
+            <div id="averagesDisplay"></div>
+            <p><b>І1 = <span id="I1_result">0.0000</span></b></p>
+        </div>
+    </div>
+    <script>
+        // CONFIGURATION START - Edit only this section to modify the formula
+        const formulaConfig = {
+            resultVar: 'I_1',
+            formula: 'Р1 / (П3 + 0.5 * П5 + 0.1 * П7)',
+            variables: {
+                'Р1': { display: 'Р1', class: 'P1', description: 'кількість НП, НПП та/або аспірантів...' },
+                'П3': { display: 'П3', class: 'P3', description: 'Чисельність штатних одиниць НП...' },
+                'П5': { display: 'П5', class: 'P5', description: 'чисельність штатних одиниць НПП...' },
+                'П7': { display: 'П7', class: 'P7', description: 'чисельність аспірантів...' }
+            }
+        };
+        // CONFIGURATION END
+
+        // Generate HTML elements based on configuration
+        function initCalculator() {
+            // Generate formula display
+            let formulaHTML = `\\[ ${formulaConfig.resultVar} = \\frac{${formulaConfig.formula}} \\]`
+                .replace(/(\w+)/g, (m) => `\\class{highlight-${m.toLowerCase()}}{${m}}`);
+            document.getElementById('formulaDisplay').innerHTML = formulaHTML;
+
+            // Generate input sections
+            let indicatorsHTML = '';
+            for (const [varName, config] of Object.entries(formulaConfig.variables)) {
+                indicatorsHTML += `
+                    <div class="indicator-group">
+                        <p><b>${config.display}</b> - <i>${config.description}</i></p>
+                        <div class="year-inputs">
+                            ${Array.from({length: 5}, (_, i) => 2020 + i).map(year => `
+                                <div class="year-input">
+                                    <label>${year}</label>
+                                    <input type="number" step="0.1" class="${config.class}">
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>`;
+            }
+            document.getElementById('indicatorsContainer').innerHTML = indicatorsHTML;
+
+            // Generate averages display
+            let averagesHTML = '';
+            for (const [varName, config] of Object.entries(formulaConfig.variables)) {
+                averagesHTML += `<p>Середнє ${config.display}: <span id="${config.class}_avg">0.00</span></p>`;
+            }
+            document.getElementById('averagesDisplay').innerHTML = averagesHTML;
+        }
+
+        // Calculation logic
+        function calculate() {
+            const getAverage = (className) => {
+                const inputs = document.getElementsByClassName(className);
+                let sum = 0, count = 0;
+                for (let input of inputs) {
+                    const value = input.value.replace(/,/g, '.');
+                    if (value.trim()) count++;
+                    sum += parseFloat(value) || 0;
+                }
+                return count === 5 ? sum / 5 : 0;
+            };
+
+            // Update highlighting
+            let allComplete = true;
+            for (const [varName, config] of Object.entries(formulaConfig.variables)) {
+                const inputs = document.getElementsByClassName(config.class);
+                const filled = Array.from(inputs).every(i => i.value.trim());
+                document.querySelectorAll(`.highlight-${varName.toLowerCase()}`).forEach(el => {
+                    el.style.color = filled ? '#000' : '#888';
+                });
+                if (!filled) allComplete = false;
+            }
+
+            // Calculate result
+            const formulaParts = formulaConfig.formula.split('/').map(p => p.trim());
+            const numerator = getAverage(formulaConfig.variables[formulaParts[0].trim()].class);
+            
+            const denominator = formulaParts[1].replace(/[()]/g, '')
+                .split('+')
+                .map(term => {
+                    const [coefficient, variable] = term.trim().split('*').map(p => p.trim());
+                    const varName = variable || coefficient;
+                    const coeffValue = variable ? parseFloat(coefficient) : 1;
+                    return coeffValue * getAverage(formulaConfig.variables[varName].class);
+                })
+                .reduce((a, b) => a + b, 0);
+
+            const result = denominator !== 0 ? (numerator / denominator).toFixed(4) : 'Неможливо обчислити';
+
+            // Update displays
+            for (const [varName, config] of Object.entries(formulaConfig.variables)) {
+                document.getElementById(`${config.class}_avg`).textContent = getAverage(config.class).toFixed(2);
+            }
+            document.getElementById('I1_result').textContent = result;
+        }
+
+        // Initialize and set up event listeners
+        initCalculator();
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', calculate);
+        });
+        calculate();
+        MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+    </script>
+</body>
+</html>
