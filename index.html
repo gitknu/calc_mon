@@ -69,10 +69,10 @@
             margin: 10px 0;
             font-size: 1em;
             color: #888;
-        }
-        .formula .highlight {
-            color: #000;
             transition: color 0.3s ease;
+        }
+        .formula.all-filled {
+            color: #000 !important;
         }
         h1 {
             font-size: 1.5em;
@@ -95,6 +95,7 @@
             I_1 = \frac{\class{highlight-п1}{Р_1}}{\class{highlight-п3}{П_3} + 0.5 \cdot \class{highlight-п5}{П_5} + 0.1 \cdot \class{highlight-п7}{П_7}}
             \]
         </div>
+        <!-- All indicator groups remain the same -->
         <div class="indicator-group">
             <p><b>Р1</b> - <i>кількість НП, НПП та /або аспірантів яким присуджено науковий ступінь доктора філософії (кандидата наук), які працювали за основним місцем роботи та/або навчались за денною формою навчання в науковій установі/закладі вищої освіти</i></p>
             <div class="year-inputs">
@@ -217,15 +218,35 @@
                 }
                 return count === 5 ? sum / 5 : 0;
             };
-            const indicators = ['П1', 'П3', 'П5', 'П7'];
-            indicators.forEach(indicator => {
+
+            // Check if all indicators are fully filled
+            const indicatorsList = ['П1', 'П3', 'П5', 'П7'];
+            const allIndicatorsFilled = indicatorsList.every(indicator => {
                 const inputs = document.getElementsByClassName(indicator);
-                const allFilled = Array.from(inputs).every(input => input.value.trim() !== '');
-                const elements = document.querySelectorAll(`.highlight-${indicator.toLowerCase()}`);
-                elements.forEach(el => {
-                    el.style.color = allFilled ? '#000' : '#888';
-                });
+                return Array.from(inputs).every(input => input.value.trim() !== '');
             });
+
+            const formulaDiv = document.querySelector('.formula');
+            formulaDiv.classList.toggle('all-filled', allIndicatorsFilled);
+
+            if (!allIndicatorsFilled) {
+                indicatorsList.forEach(indicator => {
+                    const inputs = document.getElementsByClassName(indicator);
+                    const allFilled = Array.from(inputs).every(input => input.value.trim() !== '');
+                    const elements = document.querySelectorAll(`.highlight-${indicator.toLowerCase()}`);
+                    elements.forEach(el => {
+                        el.style.color = allFilled ? '#000' : '#888';
+                    });
+                });
+            } else {
+                indicatorsList.forEach(indicator => {
+                    const elements = document.querySelectorAll(`.highlight-${indicator.toLowerCase()}`);
+                    elements.forEach(el => {
+                        el.style.color = '';
+                    });
+                });
+            }
+
             const П1_avg = getAverage('П1');
             const П3_avg = getAverage('П3');
             const П5_avg = getAverage('П5');
