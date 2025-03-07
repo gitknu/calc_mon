@@ -220,9 +220,13 @@
                     el.style.color = allFilled ? '#000' : '#888';
                 });
             });
+            const allInputs = document.querySelectorAll('input[type="number"]');
+            const allFilled = Array.from(allInputs).every(input => input.value.trim() !== '');
+            document.getElementById('formulaContainer').classList.toggle('all-filled', allFilled);
         }
         document.getElementById('formulaInput').addEventListener('input', updateInterface);
         document.getElementById('indicatorGroupsContainer').addEventListener('input', calculate);
+
         updateInterface();
     </script>
 </body>
