@@ -2,95 +2,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Розрахунок показника І1</title>
+    <title>Dynamic Indicator Calculator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
     <style>
-        /* Previous CSS styles remain unchanged */
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #f5f5f5;
+        }
+        .calculator {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+        }
+        .indicator-group {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .year-inputs {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .year-input {
+            display: flex;
+            flex-direction: column;
+        }
+        .year-input label {
+            font-size: 0.9em;
+            margin-bottom: 4px;
+            color: #555;
+        }
+        input {
+            padding: 6px;
+            margin: 2px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        #result {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #e8f5e9;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .formula {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .formula-control {
+            margin-bottom: 20px;
+        }
+        .formula-control input {
+            width: 100%;
+            padding: 8px;
+            font-size: 1em;
+        }
     </style>
 </head>
 <body>
     <div class="calculator">
-        <h1>Калькулятор показника</h1>
+        <h1>Dynamic Indicator Calculator</h1>
         <div class="formula-control">
-            <label>Формула:</label>
-            <input type="text" id="formulaInput" value="P1/(1*П3+0.5*П5+0.1*П7)" style="width: 100%; margin-bottom: 10px;">
+            <input type="text" id="formulaInput" value="A + 1/(1*B + 0.5*C + 1*Y)" placeholder="Enter formula (e.g., A/(1*B + 0.5*C)">
         </div>
         <div class="formula" id="formulaContainer"></div>
         <div id="indicatorGroupsContainer"></div>
         <div id="result"></div>
     </div>
-
     <script>
-        let dynamicConfig = {
-            formula: "",
-            variables: new Set(),
-            numerator: null,
-            denominator: []
-        };
-
-        function parseFormula(formulaStr) {
-            const parts = formulaStr.split('/');
+        let currentVariables = new Set();
+        let formulaStructure = { numerator: null, denominator: [] };
+        function parseFormula(formula) {
+            const parts = formula.split('/');
             if (parts.length !== 2) return null;
-
-            const numeratorVar = parts[0].trim();
+            const numerator = parts[0].trim();
             const denominatorTerms = parts[1].split('+').map(term => {
-                term = term.trim().replace(/\(|\)/g, '');
-                const [coeffPart, varPart] = term.split('*').map(p => p.trim());
-                const coefficient = parseFloat(coeffPart) || 1;
-                const variable = varPart || coeffPart;
+                const cleaned = term.trim().replace(/[()]/g, '');
+                const [coeff, ...vars] = cleaned.split('*').map(p => p.trim());
+                const coefficient = parseFloat(coeff) || 1;
+                const variable = vars.join('*') || coeff;
                 return { coefficient, variable };
             });
-
-            return {
-                numerator: numeratorVar,
-                denominator: denominatorTerms
-            };
+            return { numerator, denominator: denominatorTerms };
         }
-
         function updateInterface() {
-            const formulaInput = document.getElementById('formulaInput').value;
-            const parsed = parseFormula(formulaInput);
-            if (!parsed) return;
-
-            dynamicConfig.numerator = parsed.numerator;
-            dynamicConfig.denominator = parsed.denominator;
-            dynamicConfig.variables = new Set([
+            const formulaValue = document.getElementById('formulaInput').value;
+            const parsed = parseFormula(formulaValue);
+            if (!parsed || !parsed.numerator || parsed.denominator.length === 0) {
+                alert('Invalid formula format! Use format: Numerator/(Coefficient*Variable + ...)');
+                return;
+            }
+            formulaStructure = parsed;
+            currentVariables = new Set([
                 parsed.numerator,
                 ...parsed.denominator.map(t => t.variable)
             ]);
-
             updateFormulaDisplay();
             createInputGroups();
-            updateResultStructure();
+            setupCalculation();
             calculate();
         }
-
         function updateFormulaDisplay() {
-            const numeratorLatex = `\\class{highlight-${dynamicConfig.numerator}}{${dynamicConfig.numerator}}`;
-            const denominatorLatex = dynamicConfig.denominator.map(term => {
+            const numerator = `\\class{highlight-${formulaStructure.numerator}}{${formulaStructure.numerator}}`;
+            const denominator = formulaStructure.denominator.map(term => {
                 const coeff = term.coefficient !== 1 ? `\\class{highlight-constant}{${term.coefficient}} \\cdot ` : '';
                 return `${coeff}\\class{highlight-${term.variable}}{${term.variable}}`;
             }).join(' + ');
-            
             document.getElementById('formulaContainer').innerHTML = 
-                `\\[I = \\frac{${numeratorLatex}}{${denominatorLatex}}\\]`;
+                `\\[I = \\frac{${numerator}}{${denominator}}\\]`;
             MathJax.Hub.Queue(["Typeset", MathJax.Hub, "formulaContainer"]);
         }
-
         function createInputGroups() {
             const container = document.getElementById('indicatorGroupsContainer');
             container.innerHTML = '';
-            
-            dynamicConfig.variables.forEach(varName => {
+            currentVariables.forEach(variable => {
                 const group = document.createElement('div');
                 group.className = 'indicator-group';
                 group.innerHTML = `
-                    <p><b>${varName}</b></p>
+                    <h3>${variable}</h3>
                     <div class="year-inputs">
                         ${[2020, 2021, 2022, 2023, 2024].map(year => `
                             <div class="year-input">
                                 <label>${year}</label>
-                                <input type="number" step="0.1" class="${varName}">
+                                <input type="number" data-variable="${variable}" step="0.1">
                             </div>
                         `).join('')}
                     </div>
@@ -98,62 +143,55 @@
                 container.appendChild(group);
             });
         }
-
-        function updateResultStructure() {
+        function setupCalculation() {
             const resultDiv = document.getElementById('result');
             resultDiv.innerHTML = `
                 <h3>Результат:</h3>
-                <p>Середнє ${dynamicConfig.numerator}: <span id="${dynamicConfig.numerator}_avg">0.00</span></p>
-                ${dynamicConfig.denominator.map(term => `
-                    <p>Середнє ${term.variable}: <span id="${term.variable}_avg">0.00</span></p>
+                <p>Середнє ${formulaStructure.numerator}: <span id="numAvg">0.00</span></p>
+                ${formulaStructure.denominator.map(term => `
+                    <p>Середнє ${term.variable}: <span id="${term.variable}Avg">0.00</span></p>
                 `).join('')}
-                <p><b>I = <span id="I_result">0.0000</span></b></p>
+                <p><b>Результат: <span id="finalResult">0.0000</span></b></p>
             `;
         }
 
         function calculate() {
-            const getAverage = (varName) => {
-                const inputs = document.getElementsByClassName(varName);
-                let sum = 0;
-                for (let input of inputs) {
-                    sum += parseFloat(input.value.replace(/,/g, '.')) || 0;
-                }
-                return inputs.length ? sum / inputs.length : 0;
-            };
-
-            // Update highlighting
-            const anyFilled = Array.from(document.querySelectorAll('input')).some(i => i.value.trim() !== '');
-            dynamicConfig.variables.forEach(varName => {
-                const inputs = document.getElementsByClassName(varName);
-                const allFilled = Array.from(inputs).every(input => input.value.trim() !== '');
-                document.querySelectorAll(`.highlight-${varName}`).forEach(el => {
-                    el.style.color = allFilled ? '#000' : '#888';
-                });
+            const values = {};
+            document.querySelectorAll('[data-variable]').forEach(input => {
+                const varName = input.dataset.variable;
+                values[varName] = values[varName] || [];
+                values[varName].push(parseFloat(input.value) || 0);
             });
-
-            // Perform calculations
-            const numeratorAvg = getAverage(dynamicConfig.numerator);
-            let denominator = dynamicConfig.denominator.reduce((sum, term) => {
-                return sum + (getAverage(term.variable) * term.coefficient;
-            }, 0);
-
-            // Update displayed values
-            document.getElementById(`${dynamicConfig.numerator}_avg`).textContent = numeratorAvg.toFixed(2);
-            dynamicConfig.denominator.forEach(term => {
-                document.getElementById(`${term.variable}_avg`).textContent = getAverage(term.variable).toFixed(2);
+            const averages = {};
+            Object.entries(values).forEach(([varName, vals]) => {
+                averages[varName] = vals.reduce((a, b) => a + b, 0) / vals.length;
+            });
+            const numerator = averages[formulaStructure.numerator] || 0;
+            let denominator = 0;
+            
+            formulaStructure.denominator.forEach(term => {
+                const avg = averages[term.variable] || 0;
+                denominator += avg * term.coefficient;
+            });
+            document.getElementById('numAvg').textContent = numerator.toFixed(2);
+            formulaStructure.denominator.forEach(term => {
+                document.getElementById(`${term.variable}Avg`).textContent = 
+                    (averages[term.variable] || 0).toFixed(2);
             });
             
-            const result = denominator !== 0 ? (numeratorAvg / denominator).toFixed(4) : 'Неможливо обчислити';
-            document.getElementById('I_result').textContent = result;
+            const result = denominator !== 0 ? (numerator / denominator).toFixed(4) : 'N/A';
+            document.getElementById('finalResult').textContent = result;
+            currentVariables.forEach(varName => {
+                const filled = values[varName].every(v => v !== 0);
+                document.querySelectorAll(`.highlight-${varName}`).forEach(el => {
+                    el.style.color = filled ? '#000' : '#888';
+                });
+            });
         }
-
-        // Event listeners
         document.getElementById('formulaInput').addEventListener('input', updateInterface);
-        document.addEventListener('input', (e) => {
-            if (e.target.tagName === 'INPUT' && e.target.type === 'number') calculate();
+        document.getElementById('indicatorGroupsContainer').addEventListener('input', (e) => {
+            if (e.target.tagName === 'INPUT') calculate();
         });
-
-        // Initial setup
         updateInterface();
     </script>
 </body>
