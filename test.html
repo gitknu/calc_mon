@@ -5,7 +5,6 @@
     <title>Розрахунок показника І1</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
     <style>
-        /* Original CSS styles preserved */
         body {
             font-family: Arial, sans-serif;
             max-width: 800px;
@@ -210,11 +209,15 @@
             });
             const result = denominator !== 0 ? (numerator / denominator).toFixed(4) : 'Неможливо обчислити';
             document.getElementById('finalResult').textContent = result;
+            const anyFilled = Array.from(document.querySelectorAll('input')).some(input => input.value.trim() !== '');
+            document.querySelectorAll('.highlight-constant').forEach(el => {
+                el.style.color = anyFilled ? '#000' : '#888';
+            });
             currentVariables.forEach(varName => {
-                const filled = document.querySelectorAll(`[data-variable="${varName}"]`).length === 
-                             document.querySelectorAll(`[data-variable="${varName}"]:not(:placeholder-shown)`).length;
+                const inputs = document.querySelectorAll(`[data-variable="${varName}"]`);
+                const allFilled = Array.from(inputs).every(input => input.value.trim() !== '');
                 document.querySelectorAll(`.highlight-${varName}`).forEach(el => {
-                    el.style.color = filled ? '#000' : '#888';
+                    el.style.color = allFilled ? '#000' : '#888';
                 });
             });
         }
