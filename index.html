@@ -98,7 +98,7 @@
     <div class="calculator">
         <h1>Калькулятор показника І1</h1>
         <div class="formula-control">
-            <input type="text" id="formulaInput" value="П1/(1*П3 + 0.5*П5 + 0.1*П7)" placeholder="Формула у форматі Чисельник/(Коефіцієнт*Змінна + ...)">
+                <input type="text" id="formulaInput" value="Р1/(1*П3 + 0.5*П5 + 0.1*П7)" placeholder="Формула у форматі Чисельник/(Коефіцієнт*Змінна + ...)">
         </div>
         <div class="formula" id="formulaContainer"></div>
         <div id="indicatorGroupsContainer"></div>
@@ -106,7 +106,7 @@
     </div>
     <script>
         const originalDescriptions = {
-            'П1': 'Кількість НП, НПП та/або аспірантів яким присуджено науковий ступінь доктора філософії (кандидата наук), які працювали за основним місцем роботи та/або навчались за денною формою навчання в науковій установі/закладі вищої освіти',
+            'Р1': 'Кількість НП, НПП та/або аспірантів яким присуджено науковий ступінь доктора філософії (кандидата наук), які працювали за основним місцем роботи та/або навчались за денною формою навчання в науковій установі/закладі вищої освіти',
             'П3': 'Чисельність штатних одиниць НП відповідно до штатного розпису',
             'П5': 'Чисельність штатних одиниць НПП відповідно до штатного розпису',
             'П7': 'Чисельність аспірантів денної форми навчання'
@@ -226,7 +226,6 @@
         }
         document.getElementById('formulaInput').addEventListener('input', updateInterface);
         document.getElementById('indicatorGroupsContainer').addEventListener('input', calculate);
-
         updateInterface();
     </script>
 </body>
