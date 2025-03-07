@@ -96,121 +96,89 @@
     <div class="calculator">
         <h1>Калькулятор показника І1</h1>
         <p><b>І1</b> - Питомий показник кількості аспірантів, наукових працівників (далі - НП) та/або науково-педагогічних працівників (далі - НПП), яким присуджено науковий ступінь доктора філософії (кандидата наук) / освітньо-творчий ступінь доктора мистецтва, на 1 особу за науковим напрямом (НП + НПП + аспіранти денної форми навчання)</p>
-        <div class="formula">
-            \[
-            I_1 = \frac{\class{highlight-п1}{Р_1}}{\class{highlight-п3}{П_3} + \class{highlight-constant}{0.5} \cdot \class{highlight-п5}{П_5} + \class{highlight-constant}{0.1} \cdot \class{highlight-п7}{П_7}}
-            \]
-        </div>
-        <div class="indicator-group">
-            <p><b>Р1</b> - <i>кількість НП, НПП та /або аспірантів яким присуджено науковий ступінь доктора філософії (кандидата наук), які працювали за основним місцем роботи та/або навчались за денною формою навчання в науковій установі/закладі вищої освіти</i></p>
-            <div class="year-inputs">
-                <div class="year-input">
-                    <label>2020</label>
-                    <input type="number" step="0.1" class="П1">
-                </div>
-                <div class="year-input">
-                    <label>2021</label>
-                    <input type="number" step="0.1" class="П1">
-                </div>
-                <div class="year-input">
-                    <label>2022</label>
-                    <input type="number" step="0.1" class="П1">
-                </div>
-                <div class="year-input">
-                    <label>2023</label>
-                    <input type="number" step="0.1" class="П1">
-                </div>
-                <div class="year-input">
-                    <label>2024</label>
-                    <input type="number" step="0.1" class="П1">
-                </div>
-            </div>
-        </div>
-        <div class="indicator-group">
-            <p><b>П3</b> - <i>Чисельність штатних одиниць НП відповідно до штатного розпису </p>
-            <div class="year-inputs">
-                <div class="year-input">
-                    <label>2020</label>
-                    <input type="number" step="0.1" class="П3">
-                </div>
-                <div class="year-input">
-                    <label>2021</label>
-                    <input type="number" step="0.1" class="П3">
-                </div>
-                <div class="year-input">
-                    <label>2022</label>
-                    <input type="number" step="0.1" class="П3">
-                </div>
-                <div class="year-input">
-                    <label>2023</label>
-                    <input type="number" step="0.1" class="П3">
-                </div>
-                <div class="year-input">
-                    <label>2024</label>
-                    <input type="number" step="0.1" class="П3">
-                </div>
-            </div>
-        </div>
-        <div class="indicator-group">
-            <p><b>П5</b> - <i>чисельність штатних одиниць НПП відповідно до штатного розпису</i></p>
-            <div class="year-inputs">
-                <div class="year-input">
-                    <label>2020</label>
-                    <input type="number" step="0.1" class="П5">
-                </div>
-                <div class="year-input">
-                    <label>2021</label>
-                    <input type="number" step="0.1" class="П5">
-                </div>
-                <div class="year-input">
-                    <label>2022</label>
-                    <input type="number" step="0.1" class="П5">
-                </div>
-                <div class="year-input">
-                    <label>2023</label>
-                    <input type="number" step="0.1" class="П5">
-                </div>
-                <div class="year-input">
-                    <label>2024</label>
-                    <input type="number" step="0.1" class="П5">
-                </div>
-            </div>
-        </div>
-        <div class="indicator-group">
-            <p><b>П7</b> - <i>чисельність аспірантів денної форми навчання</i></p>
-            <div class="year-inputs">
-                <div class="year-input">
-                    <label>2020</label>
-                    <input type="number" step="0.1" class="П7">
-                </div>
-                <div class="year-input">
-                    <label>2021</label>
-                    <input type="number" step="0.1" class="П7">
-                </div>
-                <div class="year-input">
-                    <label>2022</label>
-                    <input type="number" step="0.1" class="П7">
-                </div>
-                <div class="year-input">
-                    <label>2023</label>
-                    <input type="number" step="0.1" class="П7">
-                </div>
-                <div class="year-input">
-                    <label>2024</label>
-                    <input type="number" step="0.1" class="П7">
-                </div>
-            </div>
-        </div>
-        <div id="result">
-            <h3>Результат:</h3>
-            <p>Середнє Р1: <span id="П1_avg">0.00</span></p>
-            <p>Середнє П3: <span id="П3_avg">0.00</span></p>
-            <p>Середнє П5: <span id="П5_avg">0.00</span></p>
-            <p>Середнє П7: <span id="П7_avg">0.00</span></p>
-            <p><b>І1 = <span id="I1_result">0.0000</span></b></p>
-        </div>
+        <div class="formula" id="formulaContainer"></div>
+        <div id="indicatorGroupsContainer"></div>
+        <div id="result"></div>
     </div>
     <script>
+        // Central configuration for indicators and formula
+        const indicatorConfig = {
+            numerator: {
+                key: 'П1',
+                symbol: 'Р_1',
+                className: 'П1',
+                description: 'кількість НП, НПП та/або аспірантів яким присуджено науковий ступінь доктора філософії (кандидата наук), які працювали за основним місцем роботи та/або навчались за денною формою навчання в науковій установі/закладі вищої освіти'
+            },
+            denominator: [
+                {
+                    key: 'П3',
+                    symbol: 'П_3',
+                    className: 'П3',
+                    coefficient: 1,
+                    description: 'Чисельність штатних одиниць НП відповідно до штатного розпису'
+                },
+                {
+                    key: 'П5',
+                    symbol: 'П_5',
+                    className: 'П5',
+                    coefficient: 0.5,
+                    description: 'чисельність штатних одиниць НПП відповідно до штатного розпису'
+                },
+                {
+                    key: 'П7',
+                    symbol: 'П_7',
+                    className: 'П7',
+                    coefficient: 0.1,
+                    description: 'чисельність аспірантів денної форми навчання'
+                }
+            ]
+        };
+
+        // Generate formula
+        const numeratorLatex = `\\class{highlight-${indicatorConfig.numerator.key.toLowerCase()}}{${indicatorConfig.numerator.symbol}}`;
+        const denominatorLatex = indicatorConfig.denominator.map(term => {
+            const coefficient = term.coefficient !== 1 ? `\\class{highlight-constant}{${term.coefficient}} \\cdot ` : '';
+            return `${coefficient}\\class{highlight-${term.key.toLowerCase()}}{${term.symbol}}`;
+        }).join(' + ');
+        document.querySelector('.formula').innerHTML = `\\[I_1 = \\frac{${numeratorLatex}}{${denominatorLatex}}\\]`;
+
+        // Generate indicator groups
+        const container = document.getElementById('indicatorGroupsContainer');
+        const years = [2020, 2021, 2022, 2023, 2024];
+
+        const createIndicatorGroup = (indicator) => {
+            const group = document.createElement('div');
+            group.className = 'indicator-group';
+            group.innerHTML = `
+                <p><b>${indicator.key}</b> - <i>${indicator.description}</i></p>
+                <div class="year-inputs">
+                    ${years.map(year => `
+                        <div class="year-input">
+                            <label>${year}</label>
+                            <input type="number" step="0.1" class="${indicator.className}">
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            return group;
+        };
+
+        // Add numerator and denominator groups
+        container.appendChild(createIndicatorGroup(indicatorConfig.numerator));
+        indicatorConfig.denominator.forEach(term => container.appendChild(createIndicatorGroup(term)));
+
+        // Generate result section
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = `
+            <h3>Результат:</h3>
+            <p>Середнє ${indicatorConfig.numerator.key}: <span id="${indicatorConfig.numerator.className}_avg">0.00</span></p>
+            ${indicatorConfig.denominator.map(term => `
+                <p>Середнє ${term.key}: <span id="${term.className}_avg">0.00</span></p>
+            `).join('')}
+            <p><b>І1 = <span id="I1_result">0.0000</span></b></p>
+        `;
+
+        // Calculation logic
         function calculate() {
             const getAverage = (className) => {
                 const inputs = document.getElementsByClassName(className);
@@ -223,52 +191,202 @@
                 }
                 return count === 5 ? sum / 5 : 0;
             };
-            const anyInputFilled = Array.from(document.querySelectorAll('input')).some(input => input.value.trim() !== '');
+
+            // Update highlights
+            const anyFilled = Array.from(document.querySelectorAll('input')).some(i => i.value.trim() !== '');
             const formulaDiv = document.querySelector('.formula');
-            formulaDiv.classList.toggle('any-filled', anyInputFilled);
-            const indicatorsList = ['П1', 'П3', 'П5', 'П7'];
-            const allIndicatorsFilled = indicatorsList.every(indicator => {
-                const inputs = document.getElementsByClassName(indicator);
-                return Array.from(inputs).every(input => input.value.trim() !== '');
+            formulaDiv.classList.toggle('any-filled', anyFilled);
+
+            // Check if all inputs are filled
+            const allFilled = Array.from(document.querySelectorAll('input')).every(i => i.value.trim() !== '');
+            formulaDiv.classList.toggle('all-filled', allFilled);
+
+            // Colorize individual indicators
+            const indicators = [indicatorConfig.numerator, ...indicatorConfig.denominator];
+            indicators.forEach(indicator => {
+                const inputs = document.getElementsByClassName(indicator.className);
+                const allFilled = Array.from(inputs).every(input => input.value.trim() !== '');
+                const elements = document.querySelectorAll(`.highlight-${indicator.key.toLowerCase()}`);
+                elements.forEach(el => {
+                    el.style.color = allFilled ? '#000' : '#888';
+                });
             });
-            formulaDiv.classList.toggle('all-filled', allIndicatorsFilled);
-            if (!allIndicatorsFilled) {
-                indicatorsList.forEach(indicator => {
-                    const inputs = document.getElementsByClassName(indicator);
-                    const allFilled = Array.from(inputs).every(input => input.value.trim() !== '');
-                    const elements = document.querySelectorAll(`.highlight-${indicator.toLowerCase()}`);
-                    elements.forEach(el => {
-                        el.style.color = allFilled ? '#000' : '#888';
-                    });
-                });
-            } else {
-                indicatorsList.forEach(indicator => {
-                    const elements = document.querySelectorAll(`.highlight-${indicator.toLowerCase()}`);
-                    elements.forEach(el => {
-                        el.style.color = '';
-                    });
-                });
-            }
-            const П1_avg = getAverage('П1');
-            const П3_avg = getAverage('П3');
-            const П5_avg = getAverage('П5');
-            const П7_avg = getAverage('П7');
-            const denominator = П3_avg + 0.5 * П5_avg + 0.1 * П7_avg;
-            let I1;
-            if (denominator === 0) {
-                I1 = 'Неможливо обчислити (ділення на нуль)';
-            } else {
-                I1 = (П1_avg / denominator).toFixed(4);
-            }
-            document.getElementById('П1_avg').textContent = П1_avg.toFixed(2);
-            document.getElementById('П3_avg').textContent = П3_avg.toFixed(2);
-            document.getElementById('П5_avg').textContent = П5_avg.toFixed(2);
-            document.getElementById('П7_avg').textContent = П7_avg.toFixed(2);
+
+            // Colorize coefficients
+            const coefficientElements = document.querySelectorAll('.highlight-constant');
+            coefficientElements.forEach(el => {
+                el.style.color = anyFilled ? '#000' : '#888';
+            });
+
+            // Calculate averages
+            const numeratorAvg = getAverage(indicatorConfig.numerator.className);
+            let denominator = 0;
+            indicatorConfig.denominator.forEach(term => {
+                denominator += getAverage(term.className) * term.coefficient;
+            });
+
+            // Update results
+            document.getElementById(`${indicatorConfig.numerator.className}_avg`).textContent = numeratorAvg.toFixed(2);
+            indicatorConfig.denominator.forEach(term => {
+                document.getElementById(`${term.className}_avg`).textContent = getAverage(term.className).toFixed(2);
+            });
+            
+            const I1 = denominator !== 0 ? (numeratorAvg / denominator).toFixed(4) : 'Неможливо обчислити';
             document.getElementById('I1_result').textContent = I1;
         }
-        document.querySelectorAll('input').forEach(input => {
-            input.addEventListener('input', calculate);
-        });
+
+        // Event listeners
+        document.querySelectorAll('input').forEach(input => input.addEventListener('input', calculate));
+        calculate();
+    </script>
+</body>
+</html>
+</head>
+<body>
+    <div class="calculator">
+        <h1>Калькулятор показника І1</h1>
+        <p><b>І1</b> - Питомий показник кількості аспірантів, наукових працівників (далі - НП) та/або науково-педагогічних працівників (далі - НПП), яким присуджено науковий ступінь доктора філософії (кандидата наук) / освітньо-творчий ступінь доктора мистецтва, на 1 особу за науковим напрямом (НП + НПП + аспіранти денної форми навчання)</p>
+        <div class="formula" id="formulaContainer"></div>
+        <div id="indicatorGroupsContainer"></div>
+        <div id="result"></div>
+    </div>
+    <script>
+        // Central configuration for indicators and formula
+        const indicatorConfig = {
+            numerator: {
+                key: 'П1',
+                symbol: 'Р_1',
+                className: 'П1',
+                description: 'кількість НП, НПП та/або аспірантів яким присуджено науковий ступінь доктора філософії (кандидата наук), які працювали за основним місцем роботи та/або навчались за денною формою навчання в науковій установі/закладі вищої освіти'
+            },
+            denominator: [
+                {
+                    key: 'П3',
+                    symbol: 'П_3',
+                    className: 'П3',
+                    coefficient: 1,
+                    description: 'Чисельність штатних одиниць НП відповідно до штатного розпису'
+                },
+                {
+                    key: 'П5',
+                    symbol: 'П_5',
+                    className: 'П5',
+                    coefficient: 0.5,
+                    description: 'чисельність штатних одиниць НПП відповідно до штатного розпису'
+                },
+                {
+                    key: 'П7',
+                    symbol: 'П_7',
+                    className: 'П7',
+                    coefficient: 0.1,
+                    description: 'чисельність аспірантів денної форми навчання'
+                }
+            ]
+        };
+
+        // Generate formula
+        const numeratorLatex = `\\class{highlight-${indicatorConfig.numerator.key.toLowerCase()}}{${indicatorConfig.numerator.symbol}}`;
+        const denominatorLatex = indicatorConfig.denominator.map(term => {
+            const coefficient = term.coefficient !== 1 ? `\\class{highlight-constant}{${term.coefficient}} \\cdot ` : '';
+            return `${coefficient}\\class{highlight-${term.key.toLowerCase()}}{${term.symbol}}`;
+        }).join(' + ');
+        document.querySelector('.formula').innerHTML = `\\[I_1 = \\frac{${numeratorLatex}}{${denominatorLatex}}\\]`;
+
+        // Generate indicator groups
+        const container = document.getElementById('indicatorGroupsContainer');
+        const years = [2020, 2021, 2022, 2023, 2024];
+
+        const createIndicatorGroup = (indicator) => {
+            const group = document.createElement('div');
+            group.className = 'indicator-group';
+            group.innerHTML = `
+                <p><b>${indicator.key}</b> - <i>${indicator.description}</i></p>
+                <div class="year-inputs">
+                    ${years.map(year => `
+                        <div class="year-input">
+                            <label>${year}</label>
+                            <input type="number" step="0.1" class="${indicator.className}">
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            return group;
+        };
+
+        // Add numerator and denominator groups
+        container.appendChild(createIndicatorGroup(indicatorConfig.numerator));
+        indicatorConfig.denominator.forEach(term => container.appendChild(createIndicatorGroup(term)));
+
+        // Generate result section
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = `
+            <h3>Результат:</h3>
+            <p>Середнє ${indicatorConfig.numerator.key}: <span id="${indicatorConfig.numerator.className}_avg">0.00</span></p>
+            ${indicatorConfig.denominator.map(term => `
+                <p>Середнє ${term.key}: <span id="${term.className}_avg">0.00</span></p>
+            `).join('')}
+            <p><b>І1 = <span id="I1_result">0.0000</span></b></p>
+        `;
+
+        // Calculation logic
+        function calculate() {
+            const getAverage = (className) => {
+                const inputs = document.getElementsByClassName(className);
+                let sum = 0;
+                let count = 0;
+                for (let input of inputs) {
+                    const value = input.value.replace(/,/g, '.');
+                    if (value.trim() !== '') count++;
+                    sum += parseFloat(value) || 0;
+                }
+                return count === 5 ? sum / 5 : 0;
+            };
+
+            // Update highlights
+            const anyFilled = Array.from(document.querySelectorAll('input')).some(i => i.value.trim() !== '');
+            const formulaDiv = document.querySelector('.formula');
+            formulaDiv.classList.toggle('any-filled', anyFilled);
+
+            // Check if all inputs are filled
+            const allFilled = Array.from(document.querySelectorAll('input')).every(i => i.value.trim() !== '');
+            formulaDiv.classList.toggle('all-filled', allFilled);
+
+            // Colorize individual indicators
+            const indicators = [indicatorConfig.numerator, ...indicatorConfig.denominator];
+            indicators.forEach(indicator => {
+                const inputs = document.getElementsByClassName(indicator.className);
+                const allFilled = Array.from(inputs).every(input => input.value.trim() !== '');
+                const elements = document.querySelectorAll(`.highlight-${indicator.key.toLowerCase()}`);
+                elements.forEach(el => {
+                    el.style.color = allFilled ? '#000' : '#888';
+                });
+            });
+
+            // Colorize coefficients
+            const coefficientElements = document.querySelectorAll('.highlight-constant');
+            coefficientElements.forEach(el => {
+                el.style.color = anyFilled ? '#000' : '#888';
+            });
+
+            // Calculate averages
+            const numeratorAvg = getAverage(indicatorConfig.numerator.className);
+            let denominator = 0;
+            indicatorConfig.denominator.forEach(term => {
+                denominator += getAverage(term.className) * term.coefficient;
+            });
+
+            // Update results
+            document.getElementById(`${indicatorConfig.numerator.className}_avg`).textContent = numeratorAvg.toFixed(2);
+            indicatorConfig.denominator.forEach(term => {
+                document.getElementById(`${term.className}_avg`).textContent = getAverage(term.className).toFixed(2);
+            });
+            
+            const I1 = denominator !== 0 ? (numeratorAvg / denominator).toFixed(4) : 'Неможливо обчислити';
+            document.getElementById('I1_result').textContent = I1;
+        }
+
+        // Event listeners
+        document.querySelectorAll('input').forEach(input => input.addEventListener('input', calculate));
         calculate();
     </script>
 </body>
