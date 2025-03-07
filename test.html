@@ -2,9 +2,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Indicator Calculator</title>
+    <title>Розрахунок показника І1</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
     <style>
+        /* Original CSS styles preserved */
         body {
             font-family: Arial, sans-serif;
             max-width: 800px;
@@ -23,6 +24,11 @@
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
+        }
+        .indicator-group h3 {
+            margin: 0 0 10px 0;
+            font-size: 1em;
+            color: #2c3e50;
         }
         .year-inputs {
             display: grid;
@@ -55,13 +61,32 @@
         }
         .formula {
             text-align: center;
-            margin: 20px 0;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 1em;
+            color: #888;
+            transition: color 0.3s ease;
+        }
+        .formula.all-filled {
+            color: #000 !important;
+        }
+        .highlight-constant {
+            color: #888;
+        }
+        .formula.any-filled .highlight-constant {
+            color: #000;
+        }
+        h1 {
+            font-size: 1.5em;
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+        p {
+            font-size: 0.9em;
+            margin: 0 0 10px 0;
+            color: #555;
         }
         .formula-control {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         .formula-control input {
             width: 100%;
@@ -72,15 +97,21 @@
 </head>
 <body>
     <div class="calculator">
-        <h1>Dynamic Indicator Calculator</h1>
+        <h1>Калькулятор показника І1</h1>
         <div class="formula-control">
-            <input type="text" id="formulaInput" value="A + 1/(1*B + 0.5*C + 1*Y)" placeholder="Enter formula (e.g., A/(1*B + 0.5*C)">
+            <input type="text" id="formulaInput" value="П1/(1*П3 + 0.5*П5 + 0.1*П7)" placeholder="Формула у форматі Чисельник/(Коефіцієнт*Змінна + ...)">
         </div>
         <div class="formula" id="formulaContainer"></div>
         <div id="indicatorGroupsContainer"></div>
         <div id="result"></div>
     </div>
     <script>
+        const originalDescriptions = {
+            'П1': 'Кількість НП, НПП та/або аспірантів яким присуджено науковий ступінь доктора філософії (кандидата наук), які працювали за основним місцем роботи та/або навчались за денною формою навчання в науковій установі/закладі вищої освіти',
+            'П3': 'Чисельність штатних одиниць НП відповідно до штатного розпису',
+            'П5': 'Чисельність штатних одиниць НПП відповідно до штатного розпису',
+            'П7': 'Чисельність аспірантів денної форми навчання'
+        };
         let currentVariables = new Set();
         let formulaStructure = { numerator: null, denominator: [] };
         function parseFormula(formula) {
@@ -100,7 +131,7 @@
             const formulaValue = document.getElementById('formulaInput').value;
             const parsed = parseFormula(formulaValue);
             if (!parsed || !parsed.numerator || parsed.denominator.length === 0) {
-                alert('Invalid formula format! Use format: Numerator/(Coefficient*Variable + ...)');
+                alert('Невірний формат формули! Використовуйте формат: Чисельник/(Коефіцієнт*Змінна + ...)');
                 return;
             }
             formulaStructure = parsed;
@@ -120,7 +151,7 @@
                 return `${coeff}\\class{highlight-${term.variable}}{${term.variable}}`;
             }).join(' + ');
             document.getElementById('formulaContainer').innerHTML = 
-                `\\[I = \\frac{${numerator}}{${denominator}}\\]`;
+                `\\[I_1 = \\frac{${numerator}}{${denominator}}\\]`;
             MathJax.Hub.Queue(["Typeset", MathJax.Hub, "formulaContainer"]);
         }
         function createInputGroups() {
@@ -131,6 +162,7 @@
                 group.className = 'indicator-group';
                 group.innerHTML = `
                     <h3>${variable}</h3>
+                    <p>${originalDescriptions[variable] || 'Новий показник'}</p>
                     <div class="year-inputs">
                         ${[2020, 2021, 2022, 2023, 2024].map(year => `
                             <div class="year-input">
@@ -151,10 +183,9 @@
                 ${formulaStructure.denominator.map(term => `
                     <p>Середнє ${term.variable}: <span id="${term.variable}Avg">0.00</span></p>
                 `).join('')}
-                <p><b>Результат: <span id="finalResult">0.0000</span></b></p>
+                <p><b>І1 = <span id="finalResult">0.0000</span></b></p>
             `;
         }
-
         function calculate() {
             const values = {};
             document.querySelectorAll('[data-variable]').forEach(input => {
@@ -168,7 +199,6 @@
             });
             const numerator = averages[formulaStructure.numerator] || 0;
             let denominator = 0;
-            
             formulaStructure.denominator.forEach(term => {
                 const avg = averages[term.variable] || 0;
                 denominator += avg * term.coefficient;
@@ -178,20 +208,18 @@
                 document.getElementById(`${term.variable}Avg`).textContent = 
                     (averages[term.variable] || 0).toFixed(2);
             });
-            
-            const result = denominator !== 0 ? (numerator / denominator).toFixed(4) : 'N/A';
+            const result = denominator !== 0 ? (numerator / denominator).toFixed(4) : 'Неможливо обчислити';
             document.getElementById('finalResult').textContent = result;
             currentVariables.forEach(varName => {
-                const filled = values[varName].every(v => v !== 0);
+                const filled = document.querySelectorAll(`[data-variable="${varName}"]`).length === 
+                             document.querySelectorAll(`[data-variable="${varName}"]:not(:placeholder-shown)`).length;
                 document.querySelectorAll(`.highlight-${varName}`).forEach(el => {
                     el.style.color = filled ? '#000' : '#888';
                 });
             });
         }
         document.getElementById('formulaInput').addEventListener('input', updateInterface);
-        document.getElementById('indicatorGroupsContainer').addEventListener('input', (e) => {
-            if (e.target.tagName === 'INPUT') calculate();
-        });
+        document.getElementById('indicatorGroupsContainer').addEventListener('input', calculate);
         updateInterface();
     </script>
 </body>
