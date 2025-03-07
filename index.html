@@ -101,7 +101,6 @@
         <div id="result"></div>
     </div>
     <script>
-        // Central configuration for indicators and formula
         const indicatorConfig = {
             numerator: {
                 key: 'П1',
@@ -133,19 +132,14 @@
                 }
             ]
         };
-
-        // Generate formula
         const numeratorLatex = `\\class{highlight-${indicatorConfig.numerator.key.toLowerCase()}}{${indicatorConfig.numerator.symbol}}`;
         const denominatorLatex = indicatorConfig.denominator.map(term => {
             const coefficient = term.coefficient !== 1 ? `\\class{highlight-constant}{${term.coefficient}} \\cdot ` : '';
             return `${coefficient}\\class{highlight-${term.key.toLowerCase()}}{${term.symbol}}`;
         }).join(' + ');
         document.querySelector('.formula').innerHTML = `\\[I_1 = \\frac{${numeratorLatex}}{${denominatorLatex}}\\]`;
-
-        // Generate indicator groups
         const container = document.getElementById('indicatorGroupsContainer');
         const years = [2020, 2021, 2022, 2023, 2024];
-
         const createIndicatorGroup = (indicator) => {
             const group = document.createElement('div');
             group.className = 'indicator-group';
@@ -162,12 +156,8 @@
             `;
             return group;
         };
-
-        // Add numerator and denominator groups
         container.appendChild(createIndicatorGroup(indicatorConfig.numerator));
         indicatorConfig.denominator.forEach(term => container.appendChild(createIndicatorGroup(term)));
-
-        // Generate result section
         const resultDiv = document.getElementById('result');
         resultDiv.innerHTML = `
             <h3>Результат:</h3>
@@ -177,8 +167,6 @@
             `).join('')}
             <p><b>І1 = <span id="I1_result">0.0000</span></b></p>
         `;
-
-        // Calculation logic
         function calculate() {
             const getAverage = (className) => {
                 const inputs = document.getElementsByClassName(className);
@@ -191,17 +179,11 @@
                 }
                 return count === 5 ? sum / 5 : 0;
             };
-
-            // Update highlights
             const anyFilled = Array.from(document.querySelectorAll('input')).some(i => i.value.trim() !== '');
             const formulaDiv = document.querySelector('.formula');
             formulaDiv.classList.toggle('any-filled', anyFilled);
-
-            // Check if all inputs are filled
             const allFilled = Array.from(document.querySelectorAll('input')).every(i => i.value.trim() !== '');
             formulaDiv.classList.toggle('all-filled', allFilled);
-
-            // Colorize individual indicators
             const indicators = [indicatorConfig.numerator, ...indicatorConfig.denominator];
             indicators.forEach(indicator => {
                 const inputs = document.getElementsByClassName(indicator.className);
@@ -211,31 +193,22 @@
                     el.style.color = allFilled ? '#000' : '#888';
                 });
             });
-
-            // Colorize coefficients
             const coefficientElements = document.querySelectorAll('.highlight-constant');
             coefficientElements.forEach(el => {
                 el.style.color = anyFilled ? '#000' : '#888';
             });
-
-            // Calculate averages
             const numeratorAvg = getAverage(indicatorConfig.numerator.className);
             let denominator = 0;
             indicatorConfig.denominator.forEach(term => {
                 denominator += getAverage(term.className) * term.coefficient;
             });
-
-            // Update results
             document.getElementById(`${indicatorConfig.numerator.className}_avg`).textContent = numeratorAvg.toFixed(2);
             indicatorConfig.denominator.forEach(term => {
                 document.getElementById(`${term.className}_avg`).textContent = getAverage(term.className).toFixed(2);
             });
-            
             const I1 = denominator !== 0 ? (numeratorAvg / denominator).toFixed(4) : 'Неможливо обчислити';
             document.getElementById('I1_result').textContent = I1;
         }
-
-        // Event listeners
         document.querySelectorAll('input').forEach(input => input.addEventListener('input', calculate));
         calculate();
     </script>
@@ -251,7 +224,6 @@
         <div id="result"></div>
     </div>
     <script>
-        // Central configuration for indicators and formula
         const indicatorConfig = {
             numerator: {
                 key: 'П1',
@@ -283,19 +255,14 @@
                 }
             ]
         };
-
-        // Generate formula
         const numeratorLatex = `\\class{highlight-${indicatorConfig.numerator.key.toLowerCase()}}{${indicatorConfig.numerator.symbol}}`;
         const denominatorLatex = indicatorConfig.denominator.map(term => {
             const coefficient = term.coefficient !== 1 ? `\\class{highlight-constant}{${term.coefficient}} \\cdot ` : '';
             return `${coefficient}\\class{highlight-${term.key.toLowerCase()}}{${term.symbol}}`;
         }).join(' + ');
         document.querySelector('.formula').innerHTML = `\\[I_1 = \\frac{${numeratorLatex}}{${denominatorLatex}}\\]`;
-
-        // Generate indicator groups
         const container = document.getElementById('indicatorGroupsContainer');
         const years = [2020, 2021, 2022, 2023, 2024];
-
         const createIndicatorGroup = (indicator) => {
             const group = document.createElement('div');
             group.className = 'indicator-group';
@@ -312,12 +279,8 @@
             `;
             return group;
         };
-
-        // Add numerator and denominator groups
         container.appendChild(createIndicatorGroup(indicatorConfig.numerator));
         indicatorConfig.denominator.forEach(term => container.appendChild(createIndicatorGroup(term)));
-
-        // Generate result section
         const resultDiv = document.getElementById('result');
         resultDiv.innerHTML = `
             <h3>Результат:</h3>
@@ -327,8 +290,6 @@
             `).join('')}
             <p><b>І1 = <span id="I1_result">0.0000</span></b></p>
         `;
-
-        // Calculation logic
         function calculate() {
             const getAverage = (className) => {
                 const inputs = document.getElementsByClassName(className);
@@ -341,17 +302,11 @@
                 }
                 return count === 5 ? sum / 5 : 0;
             };
-
-            // Update highlights
             const anyFilled = Array.from(document.querySelectorAll('input')).some(i => i.value.trim() !== '');
             const formulaDiv = document.querySelector('.formula');
             formulaDiv.classList.toggle('any-filled', anyFilled);
-
-            // Check if all inputs are filled
             const allFilled = Array.from(document.querySelectorAll('input')).every(i => i.value.trim() !== '');
             formulaDiv.classList.toggle('all-filled', allFilled);
-
-            // Colorize individual indicators
             const indicators = [indicatorConfig.numerator, ...indicatorConfig.denominator];
             indicators.forEach(indicator => {
                 const inputs = document.getElementsByClassName(indicator.className);
@@ -361,31 +316,22 @@
                     el.style.color = allFilled ? '#000' : '#888';
                 });
             });
-
-            // Colorize coefficients
             const coefficientElements = document.querySelectorAll('.highlight-constant');
             coefficientElements.forEach(el => {
                 el.style.color = anyFilled ? '#000' : '#888';
             });
-
-            // Calculate averages
             const numeratorAvg = getAverage(indicatorConfig.numerator.className);
             let denominator = 0;
             indicatorConfig.denominator.forEach(term => {
                 denominator += getAverage(term.className) * term.coefficient;
             });
-
-            // Update results
             document.getElementById(`${indicatorConfig.numerator.className}_avg`).textContent = numeratorAvg.toFixed(2);
             indicatorConfig.denominator.forEach(term => {
                 document.getElementById(`${term.className}_avg`).textContent = getAverage(term.className).toFixed(2);
             });
-            
             const I1 = denominator !== 0 ? (numeratorAvg / denominator).toFixed(4) : 'Неможливо обчислити';
             document.getElementById('I1_result').textContent = I1;
         }
-
-        // Event listeners
         document.querySelectorAll('input').forEach(input => input.addEventListener('input', calculate));
         calculate();
     </script>
