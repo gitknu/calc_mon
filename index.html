@@ -6,12 +6,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
-        /* Add tabs styling */
         .tabs-container {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 15px;
+        }
+        .tab-row {
             display: flex;
             flex-wrap: wrap;
             gap: 4px;
-            margin-bottom: 15px;
         }
         .tab-button {
             padding: 8px 12px;
@@ -21,13 +25,25 @@
             cursor: pointer;
             font-size: 0.9em;
             transition: all 0.2s;
+            margin-bottom: 4px;
         }
         .tab-button.active {
             background: #ffffff;
             border-bottom-color: transparent;
             cursor: default;
         }
-        /* Keep all previous styles unchanged below */
+        #saveBtn {
+            position: absolute;
+            right: 20px;
+            top: 60px;  /* Lowered to accommodate tabs */
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            z-index: 1000;
+        }
         body {
             font-family: Arial, sans-serif;
             max-width: 800px;
@@ -42,18 +58,6 @@
             border-radius: 8px;
             box-shadow: 0 0 8px rgba(0,0,0,0.1);
             position: relative;
-        }
-        #saveBtn {
-            position: absolute;
-            right: 20px;
-            top: 20px;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            z-index: 1000;
         }
         .indicator-group {
             margin-bottom: 15px;
@@ -113,11 +117,6 @@
         .formula.any-filled .highlight-constant {
             color: #000;
         }
-        h1 {
-            font-size: 1.5em;
-            margin: 0 0 10px 0;
-            color: #2c3e50;
-        }
         p {
             font-size: 0.9em;
             margin: 0 0 10px 0;
@@ -132,7 +131,6 @@
             font-size: 1em;
             box-sizing: border-box;
         }
-
         @media (max-width: 800px) {
             body {
                 padding: 10px;
@@ -154,7 +152,6 @@
                 padding: 10px;
             }
         }
-
         @media (max-width: 480px) {
             .year-inputs {
                 grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
@@ -162,21 +159,48 @@
             .year-input label {
                 font-size: 0.8em;
             }
-            h1 {
-                font-size: 1.3em;
-            }
             .tab-button {
                 padding: 6px 8px;
                 font-size: 0.8em;
+            }
+            #saveBtn {
+                top: 80px;  
             }
         }
     </style>
 </head>
 <body>
-    <button id="saveBtn">Save as PNG</button>
-    <div class="tabs-container" id="tabsContainer"></div>
+    <div class="tabs-container" id="tabsContainer">
+        <div class="tab-row">
+            <button class="tab-button active">I1</button>
+            <button class="tab-button">I2</button>
+            <button class="tab-button">I3</button>
+            <button class="tab-button">I4</button>
+            <button class="tab-button">I5</button>
+            <button class="tab-button">I6</button>
+            <button class="tab-button">I7</button>
+            <button class="tab-button">I8</button>
+            <button class="tab-button">I9</button>
+            <button class="tab-button">I10</button>
+            <button class="tab-button">I11</button>
+            <button class="tab-button">I12</button>
+        </div>
+        <div class="tab-row">
+            <button class="tab-button">I13</button>
+            <button class="tab-button">I14</button>
+            <button class="tab-button">I15</button>
+            <button class="tab-button">I16</button>
+            <button class="tab-button">I17</button>
+            <button class="tab-button">I18</button>
+            <button class="tab-button">I19</button>
+            <button class="tab-button">I20</button>
+            <button class="tab-button">I21</button>
+            <button class="tab-button">I22</button>
+            <button class="tab-button">I23</button>
+        </div>
+    </div>
+    <button id="saveBtn">Зберегти<br>скріншот</button>
     <div class="calculator">
-        <h1>Калькулятор показника І1</h1>
         <div class="formula-control">
                 <input type="text" id="formulaInput" value="Р1/(1*П3 + 0.5*П5 + 0.1*П7)" placeholder="Формула у форматі Чисельник/(Коефіцієнт*Змінна + ...)">
         </div>
@@ -185,16 +209,6 @@
         <div id="result"></div>
     </div>
     <script>
-        // Add tabs generation
-        const tabsContainer = document.getElementById('tabsContainer');
-        for (let i = 1; i <= 23; i++) {
-            const tab = document.createElement('button');
-            tab.className = `tab-button ${i === 1 ? 'active' : ''}`;
-            tab.textContent = `I${i}`;
-            tabsContainer.appendChild(tab);
-        }
-
-        // Save as PNG functionality
         document.getElementById('saveBtn').addEventListener('click', function() {
             html2canvas(document.body).then(canvas => {
                 const link = document.createElement('a');
@@ -207,8 +221,6 @@
                 link.click();
             });
         });
-
-        // Original JavaScript remains unchanged below
         const originalDescriptions = {
             'Р1': 'Кількість НП, НПП та/або аспірантів яким присуджено науковий ступінь доктора філософії (кандидата наук), які працювали за основним місцем роботи та/або навчались за денною формою навчання в науковій установі/закладі вищої освіти',
             'П3': 'Чисельність штатних одиниць НП відповідно до штатного розпису',
