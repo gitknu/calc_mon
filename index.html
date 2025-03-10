@@ -294,11 +294,17 @@
             });
         });
         let currentVariables = new Set();
-        let formulaStructure = { numerator: null, denominator: [] };
+        let formulaStructure = { numerator: [], denominator: [] };
         function parseFormula(formula) {
             const parts = formula.split('/');
             if (parts.length !== 2) return null;
-            const numerator = parts[0].trim();
+            const numeratorTerms = parts[0].split('+').map(term => {
+                const cleaned = term.trim().replace(/[()]/g, '');
+                const [coeff, ...vars] = cleaned.split('*').map(p => p.trim());
+                const coefficient = parseFloat(coeff) || 1;
+                const variable = vars.join('*') || coeff;
+                return { coefficient, variable };
+            });
             const denominatorTerms = parts[1].split('+').map(term => {
                 const cleaned = term.trim().replace(/[()]/g, '');
                 const [coeff, ...vars] = cleaned.split('*').map(p => p.trim());
@@ -306,18 +312,18 @@
                 const variable = vars.join('*') || coeff;
                 return { coefficient, variable };
             });
-            return { numerator, denominator: denominatorTerms };
+            return { numerator: numeratorTerms, denominator: denominatorTerms };
         }
         function updateInterface() {
             const formulaValue = document.getElementById('formulaInput').value;
             const parsed = parseFormula(formulaValue);
-            if (!parsed || !parsed.numerator || parsed.denominator.length === 0) {
+            if (!parsed || parsed.numerator.length === 0 || parsed.denominator.length === 0) {
                 alert('Пусто!');
                 return;
             }
             formulaStructure = parsed;
             currentVariables = new Set([
-                parsed.numerator,
+                ...parsed.numerator.map(t => t.variable),
                 ...parsed.denominator.map(t => t.variable)
             ]);
             updateFormulaDisplay();
@@ -326,7 +332,10 @@
             calculate();
         }
         function updateFormulaDisplay() {
-            const numerator = `\\class{highlight-${formulaStructure.numerator}}{${formulaStructure.numerator}}`;
+            const numerator = formulaStructure.numerator.map(term => {
+                const coeff = term.coefficient !== 1 ? `\\class{highlight-constant}{${term.coefficient}} \\cdot ` : '';
+                return `${coeff}\\class{highlight-${term.variable}}{${term.variable}}`;
+            }).join(' + ');
             const denominator = formulaStructure.denominator.map(term => {
                 const coeff = term.coefficient !== 1 ? `\\class{highlight-constant}{${term.coefficient}} \\cdot ` : '';
                 return `${coeff}\\class{highlight-${term.variable}}{${term.variable}}`;
@@ -360,9 +369,11 @@
             const resultDiv = document.getElementById('result');
             resultDiv.innerHTML = `
                 <h3>Результат:</h3>
-                <p>Середнє ${formulaStructure.numerator}: <span id="numAvg">0.00</span></p>
+                ${formulaStructure.numerator.map(term => `
+                    <p>Середнє ${term.variable}: <span id="${term.variable}NumAvg">0.00</span></p>
+                `).join('')}
                 ${formulaStructure.denominator.map(term => `
-                    <p>Середнє ${term.variable}: <span id="${term.variable}Avg">0.00</span></p>
+                    <p>Середнє ${term.variable}: <span id="${term.variable}DenAvg">0.00</span></p>
                 `).join('')}
                 <p><b>І1 = <span id="finalResult">0.0000</span></b></p>
             `;
@@ -378,16 +389,17 @@
             Object.entries(values).forEach(([varName, vals]) => {
                 averages[varName] = vals.reduce((a, b) => a + b, 0) / vals.length;
             });
-            const numerator = averages[formulaStructure.numerator] || 0;
+            let numerator = 0;
+            formulaStructure.numerator.forEach(term => {
+                const avg = averages[term.variable] || 0;
+                numerator += avg * term.coefficient;
+                document.getElementById(`${term.variable}NumAvg`).textContent = avg.toFixed(2);
+            });
             let denominator = 0;
             formulaStructure.denominator.forEach(term => {
                 const avg = averages[term.variable] || 0;
                 denominator += avg * term.coefficient;
-            });
-            document.getElementById('numAvg').textContent = numerator.toFixed(2);
-            formulaStructure.denominator.forEach(term => {
-                document.getElementById(`${term.variable}Avg`).textContent = 
-                    (averages[term.variable] || 0).toFixed(2);
+                document.getElementById(`${term.variable}DenAvg`).textContent = avg.toFixed(2);
             });
             const result = denominator !== 0 ? (numerator / denominator).toFixed(4) : 'Неможливо обчислити';
             document.getElementById('finalResult').textContent = result;
