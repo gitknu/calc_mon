@@ -227,6 +227,7 @@
         <div id="result"></div>
     </div>
     <script>
+        let dataStorage = {}; 
         const formulasByTab = {
             'I1': 'Р1/(П3 + 0.5*П5 + 0.1*П7)',
             'I2': 'Р2/(П3 + 0.5*П5 + 0.1*П7 + П8)',
@@ -318,15 +319,26 @@
             '(Ф9)': 'Річний фонд заробітної плати НП',
             '(Ф10*)': 'Річний фонд заробітної плати НПП******',
         };
-    document.querySelectorAll('.tab-button').forEach(button => {
-        button.addEventListener('click', function() {
-            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-            this.classList.add('active');
-            const tabName = this.textContent;
-            document.getElementById('formulaInput').value = formulasByTab[tabName];
-            updateInterface();
+document.querySelectorAll('.tab-button').forEach(button => {
+    button.addEventListener('click', function() {
+        const oldTabName = document.querySelector('.tab-button.active').textContent;
+        const oldData = {};
+        Array.from(currentVariables).forEach(varName => {
+            const inputs = document.querySelectorAll(`input[data-variable="${varName}"]`);
+            oldData[varName] = {};
+            inputs.forEach(input => {
+                const year = parseInt(input.closest('.year-input').querySelector('label').textContent);
+                oldData[varName][year] = input.value;
+            });
         });
+        dataStorage[oldTabName] = oldData;
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+        const tabName = this.textContent;
+        document.getElementById('formulaInput').value = formulasByTab[tabName];
+        updateInterface();
     });
+});
     document.querySelector('.tab-button.active').click();
     document.getElementById('saveBtn').addEventListener('click', function() {
         html2canvas(document.body).then(canvas => {
@@ -415,27 +427,32 @@
         document.getElementById('formulaContainer').innerHTML = formula;
         MathJax.Hub.Queue(["Typeset", MathJax.Hub, "formulaContainer"]);
     }
-    function createInputGroups() {
-        const container = document.getElementById('indicatorGroupsContainer');
-        container.innerHTML = '';
-        currentVariables.forEach(variable => {
-            const group = document.createElement('div');
-            group.className = 'indicator-group';
-            group.innerHTML = `
-                <h3>${variable}</h3>
-                <p>${originalDescriptions[variable] || 'Новий показник'}</p>
-                <div class="year-inputs">
-                    ${[2020, 2021, 2022, 2023, 2024].map(year => `
-                        <div class="year-input">
-                            <label>${year}</label>
-                            <input type="number" data-variable="${variable}" step="0.1">
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            container.appendChild(group);
-        });
-    }
+function createInputGroups() {
+    const container = document.getElementById('indicatorGroupsContainer');
+    container.innerHTML = '';
+    const currentTab = document.querySelector('.tab-button.active').textContent;
+    const savedData = dataStorage[currentTab] || {};
+    currentVariables.forEach(variable => {
+        const group = document.createElement('div');
+        group.className = 'indicator-group';
+        group.innerHTML = `
+            <h3>${variable}</h3>
+            <p>${originalDescriptions[variable] || 'Новий показник'}</p>
+            <div class="year-inputs">
+                ${[2020, 2021, 2022, 2023, 2024].map(year => `
+                    <div class="year-input">
+                        <label>${year}</label>
+                        <input type="number" 
+                               data-variable="${variable}" 
+                               step="0.1" 
+                               value="${(savedData[variable] && savedData[variable][year]) || ''}">
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        container.appendChild(group);
+    });
+}
     function setupCalculation() {
         const resultDiv = document.getElementById('result');
         resultDiv.innerHTML = `
