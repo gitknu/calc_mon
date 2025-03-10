@@ -1,0 +1,388 @@
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Розрахунок показника І1</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        .tabs-container {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 15px;
+        }
+        .tab-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .tab-button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px 4px 0 0;
+            background: #f0f0f0;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+        .tab-button.active {
+            background: #ffffff;
+            border-bottom-color: transparent;
+            cursor: default;
+        }
+        #saveBtn {
+            position: absolute;
+            right: 20px;
+            top: 60px;  /* Lowered to accommodate tabs */
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #f5f5f5;
+            position: relative;
+        }
+        .calculator {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .indicator-group {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .indicator-group h3 {
+            margin: 0 0 10px 0;
+            font-size: 1em;
+            color: #2c3e50;
+        }
+        .year-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .year-input {
+            display: flex;
+            flex-direction: column;
+        }
+        .year-input label {
+            font-size: 0.9em;
+            margin-bottom: 4px;
+            color: #555;
+        }
+        input {
+            padding: 6px;
+            margin: 2px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9em;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        #result {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #e8f5e9;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .formula {
+            text-align: center;
+            margin: 10px 0;
+            font-size: 1em;
+            color: #888;
+            transition: color 0.3s ease;
+        }
+        .formula.all-filled {
+            color: #000 !important;
+        }
+        .highlight-constant {
+            color: #888;
+        }
+        .formula.any-filled .highlight-constant {
+            color: #000;
+        }
+        p {
+            font-size: 0.9em;
+            margin: 0 0 10px 0;
+            color: #555;
+        }
+        .formula-control {
+            margin-bottom: 15px;
+        }
+        .formula-control input {
+            width: 100%;
+            padding: 8px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        @media (max-width: 800px) {
+            body {
+                padding: 10px;
+                margin: 10px;
+            }
+            .year-inputs {
+                grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+                gap: 4px;
+            }
+            input {
+                padding: 4px;
+                font-size: 0.8em;
+            }
+            .formula-control input {
+                font-size: 0.9em;
+                padding: 6px;
+            }
+            .calculator {
+                padding: 10px;
+            }
+        }
+        @media (max-width: 480px) {
+            .year-inputs {
+                grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+            }
+            .year-input label {
+                font-size: 0.8em;
+            }
+            .tab-button {
+                padding: 6px 8px;
+                font-size: 0.8em;
+            }
+            #saveBtn {
+                top: 80px;  
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="tabs-container" id="tabsContainer">
+        <div class="tab-row">
+            <button class="tab-button active">I1</button>
+            <button class="tab-button">I2</button>
+            <button class="tab-button">I3</button>
+            <button class="tab-button">I4</button>
+            <button class="tab-button">I5</button>
+            <button class="tab-button">I6</button>
+            <button class="tab-button">I7</button>
+            <button class="tab-button">I8</button>
+            <button class="tab-button">I9</button>
+            <button class="tab-button">I10</button>
+            <button class="tab-button">I11</button>
+            <button class="tab-button">I12</button>
+        </div>
+        <div class="tab-row">
+            <button class="tab-button">I13</button>
+            <button class="tab-button">I14</button>
+            <button class="tab-button">I15</button>
+            <button class="tab-button">I16</button>
+            <button class="tab-button">I17</button>
+            <button class="tab-button">I18</button>
+            <button class="tab-button">I19</button>
+            <button class="tab-button">I20</button>
+            <button class="tab-button">I21</button>
+            <button class="tab-button">I22</button>
+            <button class="tab-button">I23</button>
+        </div>
+    </div>
+    <button id="saveBtn">Зберегти<br>скріншот</button>
+    <div class="calculator">
+        <div class="formula-control">
+            <input type="text" id="formulaInput" placeholder="Формула" readonly>
+        </div>
+        <div class="formula" id="formulaContainer"></div>
+        <div id="indicatorGroupsContainer"></div>
+        <div id="result"></div>
+    </div>
+    <script>
+        // Add formula definitions and descriptions
+        const formulasByTab = {
+            'I1': 'Р1/(1*П3 + 0.5*П5 + 0.1*П7)',
+            'I2': 'Р2/(1*П3 + 0.5*П5 + 0.1*П7 + 1*П8)',
+            'I3': 'Р3/(1*П4 + 0.6*П6)',
+            // Add formulas for other tabs as needed...
+        };
+
+        const originalDescriptions = {
+            'Р1': 'Кількість НП, НПП та/або аспірантів яким присуджено науковий ступінь доктора філософії (кандидата наук), які працювали за основним місцем роботи та/або навчались за денною формою навчання в науковій установі/закладі вищої освіти',
+            'Р2': 'Кількість наукових публікацій у міжнародних виданнях',
+            'Р3': 'Кількість патентів та авторських свідоцтв',
+            'П3': 'Чисельність штатних одиниць НП відповідно до штатного розпису',
+            'П4': 'Чисельність науково-педагогічних працівників',
+            'П5': 'Чисельність штатних одиниць НПП відповідно до штатного розпису',
+            'П6': 'Чисельність докторантів',
+            'П7': 'Чисельність аспірантів денної форми навчання',
+            'П8': 'Загальна кількість наукових проектів'
+            // Add descriptions for other variables as needed...
+        };
+
+        // Add tab click handling
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all tabs
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                // Set active class to clicked tab
+                this.classList.add('active');
+                // Get and set corresponding formula
+                const tabName = this.textContent;
+                document.getElementById('formulaInput').value = formulasByTab[tabName];
+                // Update interface
+                updateInterface();
+            });
+        });
+
+        // Initialize first tab
+        document.querySelector('.tab-button.active').click();
+
+        // Rest of the JavaScript remains unchanged
+        document.getElementById('saveBtn').addEventListener('click', function() {
+            html2canvas(document.body).then(canvas => {
+                const link = document.createElement('a');
+                const timestamp = new Date().toISOString()
+                    .replace(/T/, '_')
+                    .replace(/\..+/, '')
+                    .replace(/:/g, '-');
+                link.download = `I1_${timestamp}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        });
+
+        let currentVariables = new Set();
+        let formulaStructure = { numerator: null, denominator: [] };
+
+        function parseFormula(formula) {
+            const parts = formula.split('/');
+            if (parts.length !== 2) return null;
+            const numerator = parts[0].trim();
+            const denominatorTerms = parts[1].split('+').map(term => {
+                const cleaned = term.trim().replace(/[()]/g, '');
+                const [coeff, ...vars] = cleaned.split('*').map(p => p.trim());
+                const coefficient = parseFloat(coeff) || 1;
+                const variable = vars.join('*') || coeff;
+                return { coefficient, variable };
+            });
+            return { numerator, denominator: denominatorTerms };
+        }
+
+        function updateInterface() {
+            const formulaValue = document.getElementById('formulaInput').value;
+            const parsed = parseFormula(formulaValue);
+            if (!parsed || !parsed.numerator || parsed.denominator.length === 0) {
+                alert('Невірний формат формули! Використовуйте формат: Чисельник/(Коефіцієнт*Змінна + ...)');
+                return;
+            }
+            formulaStructure = parsed;
+            currentVariables = new Set([
+                parsed.numerator,
+                ...parsed.denominator.map(t => t.variable)
+            ]);
+            updateFormulaDisplay();
+            createInputGroups();
+            setupCalculation();
+            calculate();
+        }
+
+        function updateFormulaDisplay() {
+            const numerator = `\\class{highlight-${formulaStructure.numerator}}{${formulaStructure.numerator}}`;
+            const denominator = formulaStructure.denominator.map(term => {
+                const coeff = term.coefficient !== 1 ? `\\class{highlight-constant}{${term.coefficient}} \\cdot ` : '';
+                return `${coeff}\\class{highlight-${term.variable}}{${term.variable}}`;
+            }).join(' + ');
+            document.getElementById('formulaContainer').innerHTML = 
+                `\\[I_1 = \\frac{${numerator}}{${denominator}}\\]`;
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, "formulaContainer"]);
+        }
+
+        function createInputGroups() {
+            const container = document.getElementById('indicatorGroupsContainer');
+            container.innerHTML = '';
+            currentVariables.forEach(variable => {
+                const group = document.createElement('div');
+                group.className = 'indicator-group';
+                group.innerHTML = `
+                    <h3>${variable}</h3>
+                    <p>${originalDescriptions[variable] || 'Новий показник'}</p>
+                    <div class="year-inputs">
+                        ${[2020, 2021, 2022, 2023, 2024].map(year => `
+                            <div class="year-input">
+                                <label>${year}</label>
+                                <input type="number" data-variable="${variable}" step="0.1">
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(group);
+            });
+        }
+
+        function setupCalculation() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <h3>Результат:</h3>
+                <p>Середнє ${formulaStructure.numerator}: <span id="numAvg">0.00</span></p>
+                ${formulaStructure.denominator.map(term => `
+                    <p>Середнє ${term.variable}: <span id="${term.variable}Avg">0.00</span></p>
+                `).join('')}
+                <p><b>І1 = <span id="finalResult">0.0000</span></b></p>
+            `;
+        }
+
+        function calculate() {
+            const values = {};
+            document.querySelectorAll('[data-variable]').forEach(input => {
+                const varName = input.dataset.variable;
+                values[varName] = values[varName] || [];
+                values[varName].push(parseFloat(input.value) || 0);
+            });
+            const averages = {};
+            Object.entries(values).forEach(([varName, vals]) => {
+                averages[varName] = vals.reduce((a, b) => a + b, 0) / vals.length;
+            });
+            const numerator = averages[formulaStructure.numerator] || 0;
+            let denominator = 0;
+            formulaStructure.denominator.forEach(term => {
+                const avg = averages[term.variable] || 0;
+                denominator += avg * term.coefficient;
+            });
+            document.getElementById('numAvg').textContent = numerator.toFixed(2);
+            formulaStructure.denominator.forEach(term => {
+                document.getElementById(`${term.variable}Avg`).textContent = 
+                    (averages[term.variable] || 0).toFixed(2);
+            });
+            const result = denominator !== 0 ? (numerator / denominator).toFixed(4) : 'Неможливо обчислити';
+            document.getElementById('finalResult').textContent = result;
+            const anyFilled = Array.from(document.querySelectorAll('input')).some(input => input.value.trim() !== '');
+            document.querySelectorAll('.highlight-constant').forEach(el => {
+                el.style.color = anyFilled ? '#000' : '#888';
+            });
+            currentVariables.forEach(varName => {
+                const inputs = document.querySelectorAll(`[data-variable="${varName}"]`);
+                const allFilled = Array.from(inputs).every(input => input.value.trim() !== '');
+                document.querySelectorAll(`.highlight-${varName}`).forEach(el => {
+                    el.style.color = allFilled ? '#000' : '#888';
+                });
+            });
+            const allInputs = document.querySelectorAll('input[type="number"]');
+            const allFilled = Array.from(allInputs).every(input => input.value.trim() !== '');
+            document.getElementById('formulaContainer').classList.toggle('all-filled', allFilled);
+        }
+
+        document.getElementById('indicatorGroupsContainer').addEventListener('input', calculate);
+    </script>
+</body>
+</html>
