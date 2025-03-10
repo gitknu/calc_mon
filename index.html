@@ -35,7 +35,7 @@
         #saveBtn {
             position: absolute;
             right: 20px;
-            top: 60px;  /* Lowered to accommodate tabs */
+            top: 60px; 
             background: #4CAF50;
             color: white;
             border: none;
@@ -209,14 +209,11 @@
         <div id="result"></div>
     </div>
     <script>
-        // Add formula definitions and descriptions
         const formulasByTab = {
             'I1': 'Р1/(1*П3 + 0.5*П5 + 0.1*П7)',
             'I2': 'Р2/(1*П3 + 0.5*П5 + 0.1*П7 + 1*П8)',
             'I3': 'Р3/(1*П4 + 0.6*П6)',
-            // Add formulas for other tabs as needed...
         };
-
         const originalDescriptions = {
             'Р1': 'Кількість НП, НПП та/або аспірантів яким присуджено науковий ступінь доктора філософії (кандидата наук), які працювали за основним місцем роботи та/або навчались за денною формою навчання в науковій установі/закладі вищої освіти',
             'Р2': 'Кількість наукових публікацій у міжнародних виданнях',
@@ -227,28 +224,17 @@
             'П6': 'Чисельність докторантів',
             'П7': 'Чисельність аспірантів денної форми навчання',
             'П8': 'Загальна кількість наукових проектів'
-            // Add descriptions for other variables as needed...
         };
-
-        // Add tab click handling
         document.querySelectorAll('.tab-button').forEach(button => {
             button.addEventListener('click', function() {
-                // Remove active class from all tabs
                 document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-                // Set active class to clicked tab
                 this.classList.add('active');
-                // Get and set corresponding formula
                 const tabName = this.textContent;
                 document.getElementById('formulaInput').value = formulasByTab[tabName];
-                // Update interface
                 updateInterface();
             });
         });
-
-        // Initialize first tab
         document.querySelector('.tab-button.active').click();
-
-        // Rest of the JavaScript remains unchanged
         document.getElementById('saveBtn').addEventListener('click', function() {
             html2canvas(document.body).then(canvas => {
                 const link = document.createElement('a');
@@ -261,10 +247,8 @@
                 link.click();
             });
         });
-
         let currentVariables = new Set();
         let formulaStructure = { numerator: null, denominator: [] };
-
         function parseFormula(formula) {
             const parts = formula.split('/');
             if (parts.length !== 2) return null;
@@ -278,12 +262,11 @@
             });
             return { numerator, denominator: denominatorTerms };
         }
-
         function updateInterface() {
             const formulaValue = document.getElementById('formulaInput').value;
             const parsed = parseFormula(formulaValue);
             if (!parsed || !parsed.numerator || parsed.denominator.length === 0) {
-                alert('Невірний формат формули! Використовуйте формат: Чисельник/(Коефіцієнт*Змінна + ...)');
+                alert('Пусто!');
                 return;
             }
             formulaStructure = parsed;
@@ -296,7 +279,6 @@
             setupCalculation();
             calculate();
         }
-
         function updateFormulaDisplay() {
             const numerator = `\\class{highlight-${formulaStructure.numerator}}{${formulaStructure.numerator}}`;
             const denominator = formulaStructure.denominator.map(term => {
@@ -307,7 +289,6 @@
                 `\\[I_1 = \\frac{${numerator}}{${denominator}}\\]`;
             MathJax.Hub.Queue(["Typeset", MathJax.Hub, "formulaContainer"]);
         }
-
         function createInputGroups() {
             const container = document.getElementById('indicatorGroupsContainer');
             container.innerHTML = '';
@@ -329,7 +310,6 @@
                 container.appendChild(group);
             });
         }
-
         function setupCalculation() {
             const resultDiv = document.getElementById('result');
             resultDiv.innerHTML = `
@@ -341,7 +321,6 @@
                 <p><b>І1 = <span id="finalResult">0.0000</span></b></p>
             `;
         }
-
         function calculate() {
             const values = {};
             document.querySelectorAll('[data-variable]').forEach(input => {
@@ -381,7 +360,6 @@
             const allFilled = Array.from(allInputs).every(input => input.value.trim() !== '');
             document.getElementById('formulaContainer').classList.toggle('all-filled', allFilled);
         }
-
         document.getElementById('indicatorGroupsContainer').addEventListener('input', calculate);
     </script>
 </body>
