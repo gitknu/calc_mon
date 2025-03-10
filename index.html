@@ -415,12 +415,17 @@ function updateInterface() {
     setupCalculation();
     calculate();
 }
+function formatIndicatorForLaTeX(tabName) {
+    const number = tabName.substring(1);
+    return `I_{${number}}`;
+}
 function updateFormulaDisplay() {
     const activeTab = document.querySelector('.tab-button.active').textContent;
     const formulaContainer = document.getElementById('formulaContainer');
     if (activeTab === 'I_sum') {
         formulaContainer.innerHTML = `\\[I_{\\text{sum}} = I_1 \\cdot 1 + I_2 \\cdot 1 + I_3 \\cdot 1 + I_4 \\cdot 1 + I_5 \\cdot 0.5 + I_6 \\cdot 1 + I_7 \\cdot 1 + I_8 \\cdot 3 + I_9 \\cdot 2 + I_{10} \\cdot 1 + I_{11} \\cdot 3 + I_{12} \\cdot 2 + I_{13} \\cdot 1 + I_{14} \\cdot 0.5 + I_{15} \\cdot 1.5 + I_{16} \\cdot 1.2 + I_{17} \\cdot 1 + I_{18} \\cdot 1 + I_{19} \\cdot 1.5 + I_{20} \\cdot 0.75 + I_{21} \\cdot 0.35 + I_{22} \\cdot 0.5 + I_{23} \\cdot 0.2 + I_{24} \\cdot 1 + I_{25} \\cdot 1 + I_{26} \\cdot 3 + I_{27} \\cdot 1 + I_{28} \\cdot 1 + I_{29} \\cdot 4 + I_{30} \\cdot 0.5 + I_{31} \\cdot 2 + I_{32} \\cdot 4 + I_{33} \\cdot 1 + I_{34} \\cdot 2 + I_{35} \\cdot 0.5 + I_{36} \\cdot 2 + I_{37} \\cdot 4\\]`;
     } else {
+        const indicatorName = formatIndicatorForLaTeX(activeTab);
         const numerator = formulaStructure.numerator.map(term => {
             const coeff = term.coefficient !== 1 ? `\\class{highlight-constant}{${term.coefficient}} \\cdot ` : '';
             return `${coeff}\\class{highlight-${term.variable}}{${term.variable}}`;
@@ -429,9 +434,9 @@ function updateFormulaDisplay() {
             const coeff = term.coefficient !== 1 ? `\\class{highlight-constant}{${term.coefficient}} \\cdot ` : '';
             return `${coeff}\\class{highlight-${term.variable}}{${term.variable}}`;
         }).join(' + ');
-        let formula = `\\[I_1 = \\frac{${numerator}}{${denominator}}\\]`;
+        let formula = `\\[${indicatorName} = \\frac{${numerator}}{${denominator}}\\]`;
         if (formulaStructure.subtractConstant !== 0) {
-            formula = `\\[I_1 = \\left|\\frac{${numerator}}{${denominator}} - ${formulaStructure.subtractConstant}\\right|\\]`;
+            formula = `\\[${indicatorName} = \\left|\\frac{${numerator}}{${denominator}} - ${formulaStructure.subtractConstant}\\right|\\]`;
         }
         formulaContainer.innerHTML = formula;
     }
@@ -480,7 +485,7 @@ function setupCalculation() {
         ${formulaStructure.denominator.map(term => `
             <p>Середнє ${term.variable}: <span id="${term.variable}DenAvg">0.00</span></p>
         `).join('')}
-        <p><b>І1 = <span id="finalResult">0.0000</span></b></p>
+        <p><b>${activeTab} = <span id="finalResult">0.0000</span></b></p>
     `;
 }
 function calculate() {
