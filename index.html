@@ -215,6 +215,7 @@
             <button class="tab-button">I35</button>
             <button class="tab-button">I36</button>
             <button class="tab-button">I37</button>
+            <button class="tab-button">I_sum</button>
         </div>
     </div>
     <button id="saveBtn">Зберегти<br>скріншот</button>
@@ -266,6 +267,7 @@
             'I35': 'Р20/(П3 + 0.5*П5 + 0.1*П7 + П8)',
             'I36': 'Р21/Р20',
             'I37': 'Р22/Р20',
+            'I_sum': 'I1*1 + I2*1 + I3*1 + I4*1 + I5*0.5 + I6*1 + I7*1 + I8*3 + I9*2 + I10*1 + I11*3 + I12*2 + I13*1 + I14*0.5 + I15*1.5 + I16*1.2 + I17*1 + I18*1 + I19*1.5 + I20*0.75 + I21*0.35 + I22*0.5 + I23*0.2 I24*1 + I25*1 + I26*3 + I27*1 + I28*1 + I29*4 + I30*0.5 + I31*2 + I32*4 + I33*1 + I34*2 + I35*0.5 + I36*2 + I37*4'
         };
         const originalDescriptions = {
             'П1': 'Чисельність усіх працівників наукової установи / закладу вищої освіти за основним місцем роботи, осіб',
@@ -339,44 +341,25 @@ document.querySelectorAll('.tab-button').forEach(button => {
         updateInterface();
     });
 });
-    document.querySelector('.tab-button.active').click();
-    document.getElementById('saveBtn').addEventListener('click', function() {
-        html2canvas(document.body).then(canvas => {
-            const link = document.createElement('a');
-            const timestamp = new Date().toISOString()
-                .replace(/T/, '_')
-                .replace(/\..+/, '')
-                .replace(/:/g, '-');
-            link.download = `I1_${timestamp}.png`;
-            link.href = canvas.toDataURL();
-            link.click();
-        });
+document.querySelector('.tab-button.active').click();
+document.getElementById('saveBtn').addEventListener('click', function() {
+    html2canvas(document.body).then(canvas => {
+        const link = document.createElement('a');
+        const timestamp = new Date().toISOString()
+            .replace(/T/, '_')
+            .replace(/\..+/, '')
+            .replace(/:/g, '-');
+        link.download = `I1_${timestamp}.png`;
+        link.href = canvas.toDataURL();
+        link.click();
     });
-    let currentVariables = new Set();
-    let formulaStructure = { numerator: [], denominator: [] };
-    function parseFormula(formula) {
-        if (formula.includes(') - 0.5')) {
-            const mainPart = formula.replace(') - 0.5', '');
-            const parts = mainPart.split('/');
-            if (parts.length !== 2) return null;
-            const numeratorTerms = parts[0].split('+').map(term => {
-                const cleaned = term.trim().replace(/[()]/g, '');
-                const [coeff, ...vars] = cleaned.split('*').map(p => p.trim());
-                const coefficient = parseFloat(coeff) || 1;
-                const variable = vars.join('*') || coeff;
-                return { coefficient, variable };
-            });
-            const denominatorTerms = parts[1].split('+').map(term => {
-                const cleaned = term.trim().replace(/[()]/g, '');
-                const [coeff, ...vars] = cleaned.split('*').map(p => p.trim());
-                const coefficient = parseFloat(coeff) || 1;
-                const variable = vars.join('*') || coeff;
-                return { coefficient, variable };
-            });
-            
-            return { numerator: numeratorTerms, denominator: denominatorTerms, subtractConstant: 0.5 };
-        }
-        const parts = formula.split('/');
+});
+let currentVariables = new Set();
+let formulaStructure = { numerator: [], denominator: [] };
+function parseFormula(formula) {
+    if (formula.includes(') - 0.5')) {
+        const mainPart = formula.replace(') - 0.5', '');
+        const parts = mainPart.split('/');
         if (parts.length !== 2) return null;
         const numeratorTerms = parts[0].split('+').map(term => {
             const cleaned = term.trim().replace(/[()]/g, '');
@@ -392,26 +375,52 @@ document.querySelectorAll('.tab-button').forEach(button => {
             const variable = vars.join('*') || coeff;
             return { coefficient, variable };
         });
-        return { numerator: numeratorTerms, denominator: denominatorTerms, subtractConstant: 0 };
+        return { numerator: numeratorTerms, denominator: denominatorTerms, subtractConstant: 0.5 };
     }
-    function updateInterface() {
-        const formulaValue = document.getElementById('formulaInput').value;
-        const parsed = parseFormula(formulaValue);
+    const parts = formula.split('/');
+    if (parts.length !== 2) return null;
+    const numeratorTerms = parts[0].split('+').map(term => {
+        const cleaned = term.trim().replace(/[()]/g, '');
+        const [coeff, ...vars] = cleaned.split('*').map(p => p.trim());
+        const coefficient = parseFloat(coeff) || 1;
+        const variable = vars.join('*') || coeff;
+        return { coefficient, variable };
+    });
+    const denominatorTerms = parts[1].split('+').map(term => {
+        const cleaned = term.trim().replace(/[()]/g, '');
+        const [coeff, ...vars] = cleaned.split('*').map(p => p.trim());
+        const coefficient = parseFloat(coeff) || 1;
+        const variable = vars.join('*') || coeff;
+        return { coefficient, variable };
+    });
+    return { numerator: numeratorTerms, denominator: denominatorTerms, subtractConstant: 0 };
+}
+function updateInterface() {
+    const activeTab = document.querySelector('.tab-button.active').textContent;
+    const formulaValue = document.getElementById('formulaInput').value;
+    const parsed = parseFormula(formulaValue);
+    if (activeTab !== 'I_sum') {
         if (!parsed || parsed.numerator.length === 0 || parsed.denominator.length === 0) {
             alert('Пусто!');
             return;
         }
         formulaStructure = parsed;
-        currentVariables = new Set([
-            ...parsed.numerator.map(t => t.variable),
-            ...parsed.denominator.map(t => t.variable)
-        ]);
-        updateFormulaDisplay();
-        createInputGroups();
-        setupCalculation();
-        calculate();
+        currentVariables = new Set([...parsed.numerator.map(t => t.variable), ...parsed.denominator.map(t => t.variable)]);
+    } else {
+        formulaStructure = null;
+        currentVariables = new Set();
     }
-    function updateFormulaDisplay() {
+    updateFormulaDisplay();
+    createInputGroups();
+    setupCalculation();
+    calculate();
+}
+function updateFormulaDisplay() {
+    const activeTab = document.querySelector('.tab-button.active').textContent;
+    const formulaContainer = document.getElementById('formulaContainer');
+    if (activeTab === 'I_sum') {
+        formulaContainer.innerHTML = `\\[I_{\\text{sum}} = I_1 \\cdot 1 + I_2 \\cdot 1 + I_3 \\cdot 1 + I_4 \\cdot 1 + I_5 \\cdot 0.5 + I_6 \\cdot 1 + I_7 \\cdot 1 + I_8 \\cdot 3 + I_9 \\cdot 2 + I_{10} \\cdot 1 + I_{11} \\cdot 3 + I_{12} \\cdot 2 + I_{13} \\cdot 1 + I_{14} \\cdot 0.5 + I_{15} \\cdot 1.5 + I_{16} \\cdot 1.2 + I_{17} \\cdot 1 + I_{18} \\cdot 1 + I_{19} \\cdot 1.5 + I_{20} \\cdot 0.75 + I_{21} \\cdot 0.35 + I_{22} \\cdot 0.5 + I_{23} \\cdot 0.2 + I_{24} \\cdot 1 + I_{25} \\cdot 1 + I_{26} \\cdot 3 + I_{27} \\cdot 1 + I_{28} \\cdot 1 + I_{29} \\cdot 4 + I_{30} \\cdot 0.5 + I_{31} \\cdot 2 + I_{32} \\cdot 4 + I_{33} \\cdot 1 + I_{34} \\cdot 2 + I_{35} \\cdot 0.5 + I_{36} \\cdot 2 + I_{37} \\cdot 4\\]`;
+    } else {
         const numerator = formulaStructure.numerator.map(term => {
             const coeff = term.coefficient !== 1 ? `\\class{highlight-constant}{${term.coefficient}} \\cdot ` : '';
             return `${coeff}\\class{highlight-${term.variable}}{${term.variable}}`;
@@ -424,12 +433,15 @@ document.querySelectorAll('.tab-button').forEach(button => {
         if (formulaStructure.subtractConstant !== 0) {
             formula = `\\[I_1 = \\left|\\frac{${numerator}}{${denominator}} - ${formulaStructure.subtractConstant}\\right|\\]`;
         }
-        document.getElementById('formulaContainer').innerHTML = formula;
-        MathJax.Hub.Queue(["Typeset", MathJax.Hub, "formulaContainer"]);
+        formulaContainer.innerHTML = formula;
     }
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, "formulaContainer"]);
+}
 function createInputGroups() {
     const container = document.getElementById('indicatorGroupsContainer');
     container.innerHTML = '';
+    const activeTab = document.querySelector('.tab-button.active').textContent;
+    if (activeTab === 'I_sum') return;
     const currentTab = document.querySelector('.tab-button.active').textContent;
     const savedData = dataStorage[currentTab] || {};
     currentVariables.forEach(variable => {
@@ -453,70 +465,107 @@ function createInputGroups() {
         container.appendChild(group);
     });
 }
-    function setupCalculation() {
-        const resultDiv = document.getElementById('result');
-        resultDiv.innerHTML = `
-            <h3>Результат:</h3>
-            ${formulaStructure.numerator.map(term => `
-                <p>Середнє ${term.variable}: <span id="${term.variable}NumAvg">0.00</span></p>
-            `).join('')}
-            ${formulaStructure.denominator.map(term => `
-                <p>Середнє ${term.variable}: <span id="${term.variable}DenAvg">0.00</span></p>
-            `).join('')}
-            <p><b>І1 = <span id="finalResult">0.0000</span></b></p>
-        `;
+function setupCalculation() {
+    const activeTab = document.querySelector('.tab-button.active').textContent;
+    const resultDiv = document.getElementById('result');
+    if (activeTab === 'I_sum') {
+        resultDiv.innerHTML = '<p><b>I<sub>sum</sub> = <span id="finalResult">0.0000</span></b></p>';
+        return;
     }
-    function calculate() {
-        const values = {};
-        document.querySelectorAll('[data-variable]').forEach(input => {
-            const varName = input.dataset.variable;
-            values[varName] = values[varName] || [];
-            values[varName].push(parseFloat(input.value) || 0);
-        });
-        const averages = {};
-        Object.entries(values).forEach(([varName, vals]) => {
-            averages[varName] = vals.reduce((a, b) => a + b, 0) / vals.length;
-        });
-        let numerator = 0;
-        formulaStructure.numerator.forEach(term => {
-            const avg = averages[term.variable] || 0;
-            numerator += avg * term.coefficient;
-            document.getElementById(`${term.variable}NumAvg`).textContent = avg.toFixed(2);
-        });
-        let denominator = 0;
-        formulaStructure.denominator.forEach(term => {
-            const avg = averages[term.variable] || 0;
-            denominator += avg * term.coefficient;
-            document.getElementById(`${term.variable}DenAvg`).textContent = avg.toFixed(2);
-        });
-        const activeTab = document.querySelector('.tab-button.active').textContent;
-        let resultValue;
-        if (denominator === 0) {
-            resultValue = 'Неможливо обчислити';
-        } else {
-            resultValue = numerator / denominator;
-            if (formulaStructure.subtractConstant !== 0) {
-                resultValue = Math.abs(resultValue - formulaStructure.subtractConstant);
-            }
-            resultValue = resultValue.toFixed(4);
-        }
-        document.getElementById('finalResult').textContent = resultValue;
-        const anyFilled = Array.from(document.querySelectorAll('input')).some(input => input.value.trim() !== '');
-        document.querySelectorAll('.highlight-constant').forEach(el => {
-            el.style.color = anyFilled ? '#000' : '#888';
-        });
-        currentVariables.forEach(varName => {
-            const inputs = document.querySelectorAll(`[data-variable="${varName}"]`);
-            const allFilled = Array.from(inputs).every(input => input.value.trim() !== '');
-            document.querySelectorAll(`.highlight-${varName}`).forEach(el => {
-                el.style.color = allFilled ? '#000' : '#888';
+    resultDiv.innerHTML = `
+        <h3>Результат:</h3>
+        ${formulaStructure.numerator.map(term => `
+            <p>Середнє ${term.variable}: <span id="${term.variable}NumAvg">0.00</span></p>
+        `).join('')}
+        ${formulaStructure.denominator.map(term => `
+            <p>Середнє ${term.variable}: <span id="${term.variable}DenAvg">0.00</span></p>
+        `).join('')}
+        <p><b>І1 = <span id="finalResult">0.0000</span></b></p>
+    `;
+}
+function calculate() {
+    const activeTab = document.querySelector('.tab-button.active').textContent;
+    const resultDiv = document.getElementById('result');
+    if (activeTab === 'I_sum') {
+        let sum = 0;
+        for (let i = 1; i <= 37; i++) {
+            const tabName = `I${i}`;
+            if (tabName === 'I_sum') continue;
+            const formula = formulasByTab[tabName];
+            if (!formula) continue;
+            const parsed = parseFormula(formula);
+            if (!parsed) continue;
+            const savedData = dataStorage[tabName] || {};
+            const variables = new Set([...parsed.numerator.map(t => t.variable), ...parsed.denominator.map(t => t.variable)]);
+            const averages = {};
+            variables.forEach(varName => {
+                const years = [2020, 2021, 2022, 2023, 2024];
+                const values = years.map(year => parseFloat(savedData[varName]?.[year] || 0));
+                averages[varName] = values.reduce((a, b) => a + b, 0) / years.length;
             });
-        });
-        const allInputs = document.querySelectorAll('input[type="number"]');
-        const allFilled = Array.from(allInputs).every(input => input.value.trim() !== '');
-        document.getElementById('formulaContainer').classList.toggle('all-filled', allFilled);
+            const numerator = parsed.numerator.reduce((acc, term) => acc + (averages[term.variable] || 0) * term.coefficient, 0);
+            const denominator = parsed.denominator.reduce((acc, term) => acc + (averages[term.variable] || 0) * term.coefficient, 0);
+            let value = 0;
+            if (denominator !== 0) {
+                value = numerator / denominator;
+                if (parsed.subtractConstant !== 0) {
+                    value = Math.abs(value - parsed.subtractConstant);
+                }
+            }
+            sum += value;
+        }
+        document.getElementById('finalResult').textContent = sum.toFixed(4);
+        return;
     }
-    document.getElementById('indicatorGroupsContainer').addEventListener('input', calculate);
+    const values = {};
+    document.querySelectorAll('[data-variable]').forEach(input => {
+        const varName = input.dataset.variable;
+        values[varName] = values[varName] || [];
+        values[varName].push(parseFloat(input.value) || 0);
+    });
+    const averages = {};
+    Object.entries(values).forEach(([varName, vals]) => {
+        averages[varName] = vals.reduce((a, b) => a + b, 0) / vals.length;
+    });
+    let numerator = 0;
+    formulaStructure.numerator.forEach(term => {
+        const avg = averages[term.variable] || 0;
+        numerator += avg * term.coefficient;
+        document.getElementById(`${term.variable}NumAvg`).textContent = avg.toFixed(2);
+    });
+    let denominator = 0;
+    formulaStructure.denominator.forEach(term => {
+        const avg = averages[term.variable] || 0;
+        denominator += avg * term.coefficient;
+        document.getElementById(`${term.variable}DenAvg`).textContent = avg.toFixed(2);
+    });
+    let resultValue;
+    if (denominator === 0) {
+        resultValue = 'Неможливо обчислити';
+    } else {
+        resultValue = numerator / denominator;
+        if (formulaStructure.subtractConstant !== 0) {
+            resultValue = Math.abs(resultValue - formulaStructure.subtractConstant);
+        }
+        resultValue = resultValue.toFixed(4);
+    }
+    document.getElementById('finalResult').textContent = resultValue;
+    const anyFilled = Array.from(document.querySelectorAll('input')).some(input => input.value.trim() !== '');
+    document.querySelectorAll('.highlight-constant').forEach(el => {
+        el.style.color = anyFilled ? '#000' : '#888';
+    });
+    currentVariables.forEach(varName => {
+        const inputs = document.querySelectorAll(`[data-variable="${varName}"]`);
+        const allFilled = Array.from(inputs).every(input => input.value.trim() !== '');
+        document.querySelectorAll(`.highlight-${varName}`).forEach(el => {
+            el.style.color = allFilled ? '#000' : '#888';
+        });
+    });
+    const allInputs = document.querySelectorAll('input[type="number"]');
+    const allFilled = Array.from(allInputs).every(input => input.value.trim() !== '');
+    document.getElementById('formulaContainer').classList.toggle('all-filled', allFilled);
+}
+document.getElementById('indicatorGroupsContainer').addEventListener('input', calculate);
 </script>
 </body>
 </html>
