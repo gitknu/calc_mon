@@ -175,9 +175,7 @@
         '(Ф9)': 'Річний фонд заробітної плати НП',
         '(Ф10*)': 'Річний фонд заробітної плати НПП******',
     };
-
 let indicatorValues = {};
-
 function initializeCalculator() {
     const allIndicators = new Set();
     Object.values(formulasByTab).forEach(formula => {
@@ -187,7 +185,6 @@ function initializeCalculator() {
             parsed.denominator.forEach(t => allIndicators.add(t.variable));
         }
     });
-
     const indicatorsContainer = document.getElementById('indicatorGroupsContainer');
     Array.from(allIndicators).forEach(variable => {
         const group = document.createElement('div');
@@ -209,7 +206,6 @@ function initializeCalculator() {
         `;
         indicatorsContainer.appendChild(group);
     });
-
     const formulasContainer = document.getElementById('formulasContainer');
     Object.entries(formulasByTab).forEach(([indicator, formula]) => {
         const section = document.createElement('div');
@@ -221,11 +217,9 @@ function initializeCalculator() {
         `;
         formulasContainer.appendChild(section);
     });
-
     document.querySelectorAll('input').forEach(input => {
         input.addEventListener('input', calculateAll);
     });
-
     calculateAll();
 }
 function parseFormula(formula) {
