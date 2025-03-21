@@ -175,148 +175,148 @@
         '(Ф9)': 'Річний фонд заробітної плати НП',
         '(Ф10*)': 'Річний фонд заробітної плати НПП******',
     };
-let indicatorValues = {};
-function initializeCalculator() {
-    const allIndicators = new Set();
-    Object.values(formulasByTab).forEach(formula => {
-        const parsed = parseFormula(formula);
-        if (parsed) {
-            parsed.numerator.forEach(t => allIndicators.add(t.variable));
-            parsed.denominator.forEach(t => allIndicators.add(t.variable));
-        }
-    });
-    const indicatorsContainer = document.getElementById('indicatorGroupsContainer');
-    Array.from(allIndicators).forEach(variable => {
-        const group = document.createElement('div');
-        group.className = 'indicator-group';
-        group.innerHTML = `
-            <h3>${variable}</h3>
-            <p>${originalDescriptions[variable] || ''}</p>
-            <div class="year-inputs">
-                ${[2020, 2021, 2022, 2023, 2024].map(year => `
-                    <div class="year-input">
-                        <label>${year}</label>
-                        <input type="number" 
-                               data-variable="${variable}" 
-                               step="0.1" 
-                               value="">
-                    </div>
-                `).join('')}
-            </div>
-        `;
-        indicatorsContainer.appendChild(group);
-    });
-    const formulasContainer = document.getElementById('formulasContainer');
-    Object.entries(formulasByTab).forEach(([indicator, formula]) => {
-        const section = document.createElement('div');
-        section.className = 'formula-section';
-        section.innerHTML = `
-            <h2>${indicator}</h2>
-            <div class="formula-container" id="formula_${indicator}"></div>
-            <div id="result_${indicator}"></div>
-        `;
-        formulasContainer.appendChild(section);
-    });
-    document.querySelectorAll('input').forEach(input => {
-        input.addEventListener('input', calculateAll);
-    });
-    calculateAll();
-}
-function parseFormula(formula) {
-    if (formula.includes(') - 0.5')) {
-        const mainPart = formula.replace(') - 0.5', '');
-        const parts = mainPart.split('/');
-        if (parts.length !== 2) return null;
-        return parseFormulaParts(parts[0], parts[1], 0.5);
-    }
-    const parts = formula.split('/');
-    if (parts.length !== 2) return null;
-    return parseFormulaParts(parts[0], parts[1], 0);
-}
-function parseFormulaParts(numPart, denPart, subtract) {
-    return {
-        numerator: parseTerms(numPart),
-        denominator: parseTerms(denPart),
-        subtractConstant: subtract
-    };
-}
-function parseTerms(expression) {
-    return expression.split('+').map(term => {
-        const cleaned = term.trim().replace(/[()]/g, '');
-        const [coeff, ...vars] = cleaned.split('*').map(p => p.trim());
-        return {
-            coefficient: parseFloat(coeff) || 1,
-            variable: vars.join('*') || coeff
-        };
-    });
-}
-function calculateAll() {
-    indicatorValues = {};
-    document.querySelectorAll('[data-variable]').forEach(input => {
-        const varName = input.dataset.variable;
-        const year = parseInt(input.closest('.year-input').querySelector('label').textContent);
-        indicatorValues[varName] = indicatorValues[varName] || {};
-        indicatorValues[varName][year] = parseFloat(input.value) || 0;
-    });
-    Object.entries(formulasByTab).forEach(([indicator, formula]) => {
-        const parsed = parseFormula(formula);
-        if (!parsed) return;
-        const averages = {};
-        ['numerator', 'denominator'].forEach(part => {
-            parsed[part].forEach(term => {
-                const varName = term.variable;
-                const years = Object.keys(indicatorValues[varName] || {}).map(Number);
-                const sum = years.reduce((acc, year) => acc + (indicatorValues[varName][year] || 0), 0);
-                averages[varName] = sum / years.length || 0;
-            });
+    let indicatorValues = {};
+    function initializeCalculator() {
+        const allIndicators = new Set();
+        Object.values(formulasByTab).forEach(formula => {
+            const parsed = parseFormula(formula);
+            if (parsed) {
+                parsed.numerator.forEach(t => allIndicators.add(t.variable));
+                parsed.denominator.forEach(t => allIndicators.add(t.variable));
+            }
         });
-        const numerator = parsed.numerator.reduce((acc, term) => 
-            acc + (averages[term.variable] || 0) * term.coefficient, 0);
-        const denominator = parsed.denominator.reduce((acc, term) => 
-            acc + (averages[term.variable] || 0) * term.coefficient, 0);
-        let result = denominator !== 0 ? numerator / denominator : 0;
-        if (parsed.subtractConstant !== 0) {
-            result = Math.abs(result - parsed.subtractConstant);
-        }
-        document.getElementById(`result_${indicator}`).innerHTML = `
-            <p><b>${indicator} = ${result.toFixed(4)}</b></p>
-        `;
-    });
-    updateFormulaHighlights();
-}
-function updateFormulaHighlights() {
-    Object.entries(formulasByTab).forEach(([indicator, formula]) => {
-        const container = document.getElementById(`formula_${indicator}`);
-        const parsed = parseFormula(formula);
-        if (!parsed) return;
-
-        const formulaHTML = generateFormulaHTML(indicator, parsed);
-        container.innerHTML = formulaHTML;
-        MathJax.Hub.Queue(["Typeset", MathJax.Hub, container]);
-    });
-}
-function generateFormulaHTML(indicator, parsed) {
-    const numerator = parsed.numerator.map(term => 
-        `${term.coefficient !== 1 ? `\\class{highlight-constant}{${term.coefficient}} \\cdot ` : ''}
-         \\class{highlight-${term.variable}}{${term.variable}}`).join(' + ');
-    const denominator = parsed.denominator.map(term => 
-        `${term.coefficient !== 1 ? `\\class{highlight-constant}{${term.coefficient}} \\cdot ` : ''}
-         \\class{highlight-${term.variable}}{${term.variable}}`).join(' + ');
-    let formula = `\\[${indicator} = \\frac{${numerator}}{${denominator}}\\]`;
-    if (parsed.subtractConstant !== 0) {
-        formula = `\\[${indicator} = \\left|\\frac{${numerator}}{${denominator}} - ${parsed.subtractConstant}\\right|\\]`;
+        const indicatorsContainer = document.getElementById('indicatorGroupsContainer');
+        Array.from(allIndicators).forEach(variable => {
+            const group = document.createElement('div');
+            group.className = 'indicator-group';
+            group.innerHTML = `
+                <h3>${variable}</h3>
+                <p>${originalDescriptions[variable] || ''}</p>
+                <div class="year-inputs">
+                    ${[2020, 2021, 2022, 2023, 2024].map(year => `
+                        <div class="year-input">
+                            <label>${year}</label>
+                            <input type="number" 
+                                   data-variable="${variable}" 
+                                   step="0.1" 
+                                   value="">
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            indicatorsContainer.appendChild(group);
+        });
+        const formulasContainer = document.getElementById('formulasContainer');
+        Object.entries(formulasByTab).forEach(([indicator, formula]) => {
+            const section = document.createElement('div');
+            section.className = 'formula-section';
+            section.innerHTML = `
+                <h2>${indicator}</h2>
+                <div class="formula-container" id="formula_${indicator}"></div>
+                <div id="result_${indicator}"></div>
+            `;
+            formulasContainer.appendChild(section);
+        });
+        updateFormulaHighlights();
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', calculateAll);
+        });
+        calculateAll();
     }
-    return formula;
-}
-document.getElementById('saveBtn').addEventListener('click', () => {
-    html2canvas(document.body).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `indicators_${new Date().toISOString().slice(0,10)}.png`;
-        link.href = canvas.toDataURL();
-        link.click();
+    function calculateAll() {
+        indicatorValues = {};
+        document.querySelectorAll('[data-variable]').forEach(input => {
+            const varName = input.dataset.variable;
+            const year = parseInt(input.closest('.year-input').querySelector('label').textContent);
+            indicatorValues[varName] = indicatorValues[varName] || {};
+            indicatorValues[varName][year] = parseFloat(input.value) || 0;
+        });
+        Object.entries(formulasByTab).forEach(([indicator, formula]) => {
+            const parsed = parseFormula(formula);
+            if (!parsed) return;
+            const averages = {};
+            ['numerator', 'denominator'].forEach(part => {
+                parsed[part].forEach(term => {
+                    const varName = term.variable;
+                    const years = Object.keys(indicatorValues[varName] || {}).map(Number);
+                    const sum = years.reduce((acc, year) => acc + (indicatorValues[varName][year] || 0), 0);
+                    averages[varName] = sum / years.length || 0;
+                });
+            });
+            const numerator = parsed.numerator.reduce((acc, term) => 
+                acc + (averages[term.variable] || 0) * term.coefficient, 0);
+            const denominator = parsed.denominator.reduce((acc, term) => 
+                acc + (averages[term.variable] || 0) * term.coefficient, 0);
+            let result = denominator !== 0 ? numerator / denominator : 0;
+            if (parsed.subtractConstant !== 0) {
+                result = Math.abs(result - parsed.subtractConstant);
+            }
+            document.getElementById(`result_${indicator}`).innerHTML = `
+                <p><b>${indicator} = ${result.toFixed(4)}</b></p>
+            `;
+        });
+    }
+    function parseFormula(formula) {
+        if (formula.includes(') - 0.5')) {
+            const mainPart = formula.replace(') - 0.5', '');
+            const parts = mainPart.split('/');
+            if (parts.length !== 2) return null;
+            return parseFormulaParts(parts[0], parts[1], 0.5);
+        }
+        const parts = formula.split('/');
+        if (parts.length !== 2) return null;
+        return parseFormulaParts(parts[0], parts[1], 0);
+    }
+    function parseFormulaParts(numPart, denPart, subtract) {
+        return {
+            numerator: parseTerms(numPart),
+            denominator: parseTerms(denPart),
+            subtractConstant: subtract
+        };
+    }
+    function parseTerms(expression) {
+        return expression.split('+').map(term => {
+            const cleaned = term.trim().replace(/[()]/g, '');
+            const [coeff, ...vars] = cleaned.split('*').map(p => p.trim());
+            return {
+                coefficient: parseFloat(coeff) || 1,
+                variable: vars.join('*') || coeff
+            };
+        });
+    }
+    function updateFormulaHighlights() {
+        Object.entries(formulasByTab).forEach(([indicator, formula]) => {
+            const container = document.getElementById(`formula_${indicator}`);
+            const parsed = parseFormula(formula);
+            if (!parsed) return;
+
+            const formulaHTML = generateFormulaHTML(indicator, parsed);
+            container.innerHTML = formulaHTML;
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, container]);
+        });
+    }
+    function generateFormulaHTML(indicator, parsed) {
+        const numerator = parsed.numerator.map(term => 
+            `${term.coefficient !== 1 ? `\\class{highlight-constant}{${term.coefficient}} \\cdot ` : ''}
+             \\class{highlight-${term.variable}}{${term.variable}}`).join(' + ');
+        const denominator = parsed.denominator.map(term => 
+            `${term.coefficient !== 1 ? `\\class{highlight-constant}{${term.coefficient}} \\cdot ` : ''}
+             \\class{highlight-${term.variable}}{${term.variable}}`).join(' + ');
+        let formula = `\\[${indicator} = \\frac{${numerator}}{${denominator}}\\]`;
+        if (parsed.subtractConstant !== 0) {
+            formula = `\\[${indicator} = \\left|\\frac{${numerator}}{${denominator}} - ${parsed.subtractConstant}\\right|\\]`;
+        }
+        return formula;
+    }
+    document.getElementById('saveBtn').addEventListener('click', () => {
+        html2canvas(document.body).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `indicators_${new Date().toISOString().slice(0,10)}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        });
     });
-});
-initializeCalculator();
+    initializeCalculator();
 </script>
 </body>
 </html>
