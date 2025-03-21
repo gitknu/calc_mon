@@ -6,6 +6,31 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
+    #formulasContainer {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15px;
+}
+.formula-section {
+    margin-bottom: 15px;
+    padding: 10px;
+    min-height: 150px;
+}
+.formula-section h2 {
+    margin: 5px 0;
+    font-size: 1.1em;
+}
+.formula-container {
+    margin: 5px 0;
+    padding: 5px;
+    font-size: 0.9em;
+}
+.results-container {
+    grid-column: 1 / -1;
+}
+.MathJax_Display {
+    margin: 5px 0 !important;
+}
         body {
             font-family: Arial, sans-serif;
             margin: 20px auto;
@@ -54,12 +79,13 @@
             cursor: pointer;
             z-index: 1000;
         }
-        .formula-section {
-            margin-bottom: 30px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-        }
+.formula-section {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    break-inside: avoid;
+}
         .formula-container {
             margin: 10px 0;
             padding: 10px;
