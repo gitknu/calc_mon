@@ -54,10 +54,6 @@
         .highlight-constant {
             color: #888 !important;
         }
-        .formula-section h2 {
-            margin: 5px 0;
-            font-size: 1.1em;
-        }
         .formula-container {
             margin: 5px 0;
             padding: 5px;
@@ -242,7 +238,6 @@
             const section = document.createElement('div');
             section.className = 'formula-section';
             section.innerHTML = `
-                <h2>${indicator}</h2>
                 <div class="formula-container" id="formula_${indicator}"></div>
                 <div id="result_${indicator}"></div>
             `;
