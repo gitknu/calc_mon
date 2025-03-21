@@ -55,6 +55,8 @@
             color: #888 !important;
         }
         .formula-container {
+                transition: opacity 0.2s ease-in-out;
+    opacity: 1;
             margin: 5px 0;
             padding: 5px;
             font-size: 0.9em;
@@ -325,9 +327,21 @@
             const container = document.getElementById(`formula_${indicator}`);
             const parsed = parseFormula(formula);
             if (!parsed) return;
+            const tempDiv = document.createElement('div');
+            tempDiv.style.visibility = 'hidden';
+            tempDiv.style.position = 'absolute';
             const formulaHTML = generateFormulaHTML(indicator, parsed);
-            container.innerHTML = formulaHTML;
-            MathJax.Hub.Queue(["Typeset", MathJax.Hub, container]);
+            tempDiv.innerHTML = formulaHTML;
+            document.body.appendChild(tempDiv);
+            MathJax.Hub.Queue(() => {
+                MathJax.Hub.Typeset(tempDiv, () => {
+                    container.innerHTML = tempDiv.innerHTML;
+                    document.body.removeChild(tempDiv);
+                    setTimeout(() => {
+                        container.style.opacity = 1;
+                    }, 50);
+                });
+            });
         });
     }
     function generateFormulaHTML(indicator, parsed) {
