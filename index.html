@@ -9,14 +9,13 @@
     #indicatorGroupsContainer {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    margin-top: 20px;
 }
 .indicator-group {
-    margin-bottom: 0;
     padding: 10px;
     min-height: 280px;  
-}
+    border: 1px solid #ddd;
+    border-radius: 5px;
+        }
 .indicator-group h3 {
     font-size: 1em;
     margin: 5px 0;
@@ -25,10 +24,6 @@
     font-size: 0.85em;
     white-space: normal;
     margin: 5px 0 10px;
-}
-.year-inputs {
-    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-    gap: 5px;
 }
 .year-input label {
     font-size: 0.8em;
@@ -81,18 +76,11 @@
             border-radius: 8px;
             box-shadow: 0 0 8px rgba(0,0,0,0.1);
         }
-        .indicator-group {
-            margin-bottom: 15px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
         .year-inputs {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 8px;
-            margin-bottom: 8px;
-        }
+    gap: 5px;
+}
         .year-input {
             display: flex;
             flex-direction: column;
@@ -109,7 +97,6 @@
             right: 20px;
             top: 20px;
             background: #4CAF50;
-            color: white;
             border: none;
             padding: 8px 16px;
             border-radius: 4px;
