@@ -102,10 +102,15 @@
             cursor: pointer;
             z-index: 1000;
         }
+        #uploadJsonBtn:hover {
+    background: #1976D2;
+}
     </style>
 </head>
 <body>
     <button id="saveJsonBtn">Зберегти дані</button>
+    <input type="file" id="uploadJson" accept=".json" hidden>
+<label for="uploadJson" id="uploadJsonBtn" style="position: fixed; right: 20px; top: 70px; background: #2196F3; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; z-index: 1000;">Додати JSON</label>
     <div class="calculator">
         <div id="formulasContainer"></div>
         <div id="indicatorGroupsContainer"></div>
@@ -244,7 +249,8 @@
                             <div class="year-input">
                                 <label>${year}</label>
                                 <input type="number" 
-                                       data-variable="${variable}" 
+                                       data-variable="${variable}"
+                                       data-year="${year}" 
                                        step="0.1" 
                                        value="">
                             </div>
@@ -382,6 +388,26 @@
         return formula;
     }
     initializeCalculator();
+document.getElementById('uploadJson').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const data = JSON.parse(e.target.result);
+        Object.entries(data).forEach(([variable, years]) => {
+            Object.entries(years).forEach(([year, value]) => {
+                const input = document.querySelector(`input[data-variable="${variable}"][data-year="${year}"]`);
+                if (input && value !== null) {
+                    input.value = value;
+                }
+            });
+        });
+        calculateAll();
+        updateFormulaHighlights();
+    };
+    reader.readAsText(file);
+});
 function saveDataToJson() {
     const data = {};
     document.querySelectorAll('[data-variable]').forEach(input => {
