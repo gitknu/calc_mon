@@ -391,7 +391,6 @@
 document.getElementById('uploadJson').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = function(e) {
         const data = JSON.parse(e.target.result);
@@ -417,11 +416,9 @@ function saveDataToJson() {
         if (!data[varName]) data[varName] = {};
         data[varName][year] = value || null;
     });
-    
     const dateStr = new Date().toISOString().slice(0, 10);
     const filename = `file_${dateStr}.json`;
     const jsonStr = JSON.stringify(data, null, 2);
-    
     const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
