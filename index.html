@@ -6,13 +6,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
     <style>
     #indicatorGroupsContainer {
+    align-items: start;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
 }
 .indicator-group {
+    height: auto;
+    display: flex;
+    flex-direction: column;
     padding: 10px;
-    min-height: 280px;  
-    border: 1px solid #ddd;
     border-radius: 5px;
     border: 2px dashed black;
     border-radius: 8px;
@@ -213,15 +215,28 @@
         '(Ф9)': 'Річний фонд заробітної плати НП',
         '(Ф10*)': 'Річний фонд заробітної плати НПП******',
     }; 
-    let indicatorValues = {};
-    function updateGroupBackgroundColors() {
-        document.querySelectorAll('.indicator-group').forEach(group => {
-            const inputs = group.querySelectorAll('input');
-            const allFilled = Array.from(inputs).every(input => input.value.trim() !== '');
-            group.classList.toggle('filled', allFilled);
-        });
+    function adjustIndicatorHeights() {
+    const groups = Array.from(document.querySelectorAll('.indicator-group'));
+    const rows = [];
+    while(groups.length) {
+        rows.push(groups.splice(0, 3));
     }
-    function initializeCalculator() {
+
+    rows.forEach(row => {
+        const maxHeight = Math.max(...row.map(group => group.offsetHeight));
+        row.forEach(group => group.style.height = `${maxHeight}px`);
+    });
+}
+    let indicatorValues = {};
+function updateGroupBackgroundColors() {
+    document.querySelectorAll('.indicator-group').forEach(group => {
+        const inputs = group.querySelectorAll('input');
+        const allFilled = Array.from(inputs).every(input => input.value.trim() !== '');
+        group.classList.toggle('filled', allFilled);
+    });
+}
+
+function initializeCalculator() {
         const allIndicators = new Set();
         Object.values(formulasByTab).forEach(formula => {
             const parsed = parseFormula(formula);
@@ -288,8 +303,13 @@
             });
         });
         calculateAll();
-        updateGroupBackgroundColors(); 
-    }
+        updateGroupBackgroundColors();
+        adjustIndicatorHeights(); // Initial adjustment
+    window.addEventListener('resize', adjustIndicatorHeights);
+    document.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', adjustIndicatorHeights);
+    });
+}
     function calculateAll() {
         indicatorValues = {};
         document.querySelectorAll('[data-variable]').forEach(input => {
