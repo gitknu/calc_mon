@@ -221,7 +221,6 @@
     while(groups.length) {
         rows.push(groups.splice(0, 3));
     }
-
     rows.forEach(row => {
         const maxHeight = Math.max(...row.map(group => group.offsetHeight));
         row.forEach(group => group.style.height = `${maxHeight}px`);
@@ -235,7 +234,6 @@ function updateGroupBackgroundColors() {
         group.classList.toggle('filled', allFilled);
     });
 }
-
 function initializeCalculator() {
         const allIndicators = new Set();
         Object.values(formulasByTab).forEach(formula => {
@@ -304,11 +302,7 @@ function initializeCalculator() {
         });
         calculateAll();
         updateGroupBackgroundColors();
-        adjustIndicatorHeights(); // Initial adjustment
-    window.addEventListener('resize', adjustIndicatorHeights);
-    document.querySelectorAll('input').forEach(input => {
-        input.addEventListener('input', adjustIndicatorHeights);
-    });
+        adjustIndicatorHeights();
 }
     function calculateAll() {
         indicatorValues = {};
