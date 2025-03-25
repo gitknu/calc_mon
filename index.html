@@ -5,6 +5,9 @@
     <title>Розрахунок всіх показників</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
     <style>
+    .formula-section.filled {
+    background-color: #bfff96;
+}
     #indicatorGroupsContainer {
     align-items: start;
     display: grid;
@@ -286,6 +289,7 @@ function initializeCalculator() {
         Object.entries(formulasByTab).forEach(([indicator, formula]) => {
             const section = document.createElement('div');
             section.className = 'formula-section';
+            section.setAttribute('data-indicator', indicator);  // Add this line
             section.innerHTML = `
                 <div class="formula-container" id="formula_${indicator}"></div>
                 <div id="result_${indicator}"></div>
@@ -374,6 +378,12 @@ function initializeCalculator() {
             tempDiv.style.visibility = 'hidden';
             tempDiv.style.position = 'absolute';
             const formulaHTML = generateFormulaHTML(indicator, parsed);
+            const variables = new Set();
+parsed.numerator.forEach(term => variables.add(term.variable));
+parsed.denominator.forEach(term => variables.add(term.variable));
+const allComplete = Array.from(variables).every(v => isVariableComplete(v));
+const section = document.querySelector(`.formula-section[data-indicator="${indicator}"]`);
+section?.classList.toggle('filled', allComplete);
             tempDiv.innerHTML = formulaHTML;
             document.body.appendChild(tempDiv);
             MathJax.Hub.Queue(() => {
