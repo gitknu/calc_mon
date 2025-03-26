@@ -97,8 +97,8 @@
             width: 100%;
             box-sizing: border-box;
         }
-        #uploadJsonBtn:hover, #saveJsonBtn:hover, #calculationName:hover {
-    background: white;
+        #uploadMultiJsonBtn:hover, #uploadJsonBtn:hover, #saveJsonBtn:hover, #calculationName:hover {
+            opacity: 1;
 }
 #calculationName {
     top: 30px;
@@ -107,20 +107,25 @@
     background: #c7c7c7;
 }
         #saveJsonBtn {
-            top: 73px; 
+            top: 65px; 
             background: #ffae57;
         }
 #uploadJsonBtn {
-top: 115px;
+top: 100px;
 background: #52b0fa; 
 }
-#uploadJsonBtn, #calculationName, #saveJsonBtn {
-    padding: 8px 16px;
+#uploadMultiJsonBtn {
+top: 137px;
+background: #52fa92; 
+}
+#uploadMultiJsonBtn, #uploadJsonBtn, #calculationName, #saveJsonBtn {
+    padding: 5px 16px;
     border-radius: 4px; 
     right: 20px; 
     position: fixed;
     border: 1px solid black; 
     cursor: pointer;
+    opacity:0.65;
     z-index: 1000;
 }
     </style>
@@ -128,7 +133,8 @@ background: #52b0fa;
 <body>
     <button id="saveJsonBtn">2. Збережіть дані підрозділу (коли ввели їх)</button>
     <input type="file" id="uploadJson" accept=".json" hidden>
-<label for="uploadJson" id="uploadJsonBtn">(або) Вставте наявні дані у форматі JSON</label>
+<label for="uploadJson" id="uploadJsonBtn">(чи) Вставте готовий JSON для підрозділу</label>
+<label for="uploadMultiJson" id="uploadMultiJsonBtn">(чи) Вставте готові JSONи для підрозділів</label>
 <input type="text" id="calculationName" placeholder="1. Введіть назву підрозділу (кафедри тощо)" >
     <div class="calculator">
         <div id="indicatorGroupsContainer"></div>
