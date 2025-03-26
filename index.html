@@ -97,6 +97,23 @@
             width: 100%;
             box-sizing: border-box;
         }
+        #sortedResultsTable {
+    margin-top: 20px;
+    width: 100%;
+    border: 1px solid black;
+}
+#sortedResultsTable th, #sortedResultsTable td {
+    padding: 1px;
+    text-align: center;
+    font-size: 0.8em;
+    border: 1px solid black;
+}
+#sortedResultsTable th {
+    background-color: #f2f2f2;
+}
+#sortedResultsTable tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
         #multiResultsTable {
     margin-top: 20px;
     width: 100%;
@@ -162,6 +179,7 @@ white-space: pre-line;
         <div id="formulasContainer"></div>
         <div id="resultsContainer" class="results-container"></div>
         <div id="multiResultsContainer"></div>
+        <div id="sortedResultsContainer"></div>
     </div>
 <script>
     let dataStorage = {};
@@ -189,9 +207,11 @@ function generateMultiResultsTable() {
     const container = document.getElementById('multiResultsContainer');
     container.innerHTML = '';
     if (multiResults.length === 0) return;
-    const table = document.createElement('table');
-    table.id = 'multiResultsTable';
-    const headerRow = table.insertRow();
+
+    // Create original department-based table
+    const originalTable = document.createElement('table');
+    originalTable.id = 'multiResultsTable';
+    const headerRow = originalTable.insertRow();
     headerRow.insertCell().textContent = 'Підрозділ';
     for (let i = 1; i <= 37; i++) {
         const th = document.createElement('th');
@@ -199,7 +219,7 @@ function generateMultiResultsTable() {
         headerRow.appendChild(th);
     }
     multiResults.forEach(resultData => {
-        const row = table.insertRow();
+        const row = originalTable.insertRow();
         row.insertCell().textContent = resultData.name;
         for (let i = 1; i <= 37; i++) {
             const cell = row.insertCell();
@@ -207,7 +227,49 @@ function generateMultiResultsTable() {
             cell.textContent = value.toFixed(4);
         }
     });
-    container.appendChild(table);
+    container.appendChild(originalTable);
+
+    // Create sorted values table
+    const sortedContainer = document.getElementById('sortedResultsContainer');
+    sortedContainer.innerHTML = '';
+    const sortedTable = document.createElement('table');
+    sortedTable.id = 'sortedResultsTable';
+
+    // Process data for sorting
+    const sortedData = {};
+    for (let i = 1; i <= 37; i++) {
+        const indicator = `I${i}`;
+        const values = multiResults.map(dept => ({
+            value: dept.results[indicator] || 0,
+            name: dept.name
+        }));
+        values.sort((a, b) => b.value - a.value);
+        sortedData[indicator] = values;
+    }
+
+    // Create table header
+    const sortedHeader = sortedTable.insertRow();
+    for (let i = 1; i <= 37; i++) {
+        const th = document.createElement('th');
+        th.textContent = `I${i}`;
+        sortedHeader.appendChild(th);
+    }
+
+    // Create table rows with sorted values
+    const maxRows = Math.max(...Object.values(sortedData).map(arr => arr.length));
+    for (let rank = 0; rank < maxRows; rank++) {
+        const row = sortedTable.insertRow();
+        
+        for (let i = 1; i <= 37; i++) {
+            const indicator = `I${i}`;
+            const cell = row.insertCell();
+            if (sortedData[indicator][rank]) {
+                cell.textContent = sortedData[indicator][rank].value.toFixed(4);
+            }
+        }
+    }
+
+    sortedContainer.appendChild(sortedTable);
     window.scrollTo(0, document.body.scrollHeight);
 }
     const formulasByTab = {
