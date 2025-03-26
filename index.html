@@ -207,8 +207,6 @@ function generateMultiResultsTable() {
     const container = document.getElementById('multiResultsContainer');
     container.innerHTML = '';
     if (multiResults.length === 0) return;
-
-    // Create original department-based table
     const originalTable = document.createElement('table');
     originalTable.id = 'multiResultsTable';
     const headerRow = originalTable.insertRow();
@@ -228,14 +226,10 @@ function generateMultiResultsTable() {
         }
     });
     container.appendChild(originalTable);
-
-    // Create sorted values table
     const sortedContainer = document.getElementById('sortedResultsContainer');
     sortedContainer.innerHTML = '';
     const sortedTable = document.createElement('table');
     sortedTable.id = 'sortedResultsTable';
-
-    // Process data for sorting
     const sortedData = {};
     for (let i = 1; i <= 37; i++) {
         const indicator = `I${i}`;
@@ -246,29 +240,38 @@ function generateMultiResultsTable() {
         values.sort((a, b) => b.value - a.value);
         sortedData[indicator] = values;
     }
-
-    // Create table header
+    const medians = {};
+    Object.keys(sortedData).forEach(indicator => {
+        const values = sortedData[indicator];
+        const length = values.length;
+        if (length === 0) return;
+        if (length % 2 === 1) { // Odd number of values
+            medians[indicator] = [Math.floor(length / 2)];
+        } else { // Even number of values
+            medians[indicator] = [length / 2 - 1, length / 2];
+        }
+    });
     const sortedHeader = sortedTable.insertRow();
     for (let i = 1; i <= 37; i++) {
         const th = document.createElement('th');
         th.textContent = `I${i}`;
         sortedHeader.appendChild(th);
     }
-
-    // Create table rows with sorted values
     const maxRows = Math.max(...Object.values(sortedData).map(arr => arr.length));
     for (let rank = 0; rank < maxRows; rank++) {
         const row = sortedTable.insertRow();
-        
         for (let i = 1; i <= 37; i++) {
             const indicator = `I${i}`;
             const cell = row.insertCell();
             if (sortedData[indicator][rank]) {
                 cell.textContent = sortedData[indicator][rank].value.toFixed(4);
+                if (medians[indicator]?.includes(rank)) {
+                    const length = sortedData[indicator].length;
+                    cell.style.backgroundColor = length % 2 === 1 ? '#fc8b83' : '#ff0004';
+                }
             }
         }
     }
-
     sortedContainer.appendChild(sortedTable);
     window.scrollTo(0, document.body.scrollHeight);
 }
