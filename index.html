@@ -111,12 +111,35 @@
         #uploadJsonBtn:hover {
     background: #1976D2;
 }
+#calculationName {
+    width: 305px;
+    background: white;
+    position: fixed; 
+    right: 20px; 
+    top: 215px; padding: 8px 16px; 
+    border-radius: 4px; 
+    border: 1px solid black; 
+    z-index: 1000;
+}
+#uploadJsonBtn {
+position: fixed; 
+right: 20px; 
+top: 170px; 
+background: #2196F3; 
+color: white; 
+border: none; 
+padding: 8px 16px; 
+border-radius: 4px; 
+cursor: pointer; 
+z-index: 1000;
+}
     </style>
 </head>
 <body>
-    <button id="saveJsonBtn">Зберегти</button>
+    <button id="saveJsonBtn">Зберегти JSON (одного підрозділу)</button>
     <input type="file" id="uploadJson" accept=".json" hidden>
-<label for="uploadJson" id="uploadJsonBtn" style="position: fixed; right: 20px; top: 170px; background: #2196F3; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; z-index: 1000;">Вставити</label>
+<label for="uploadJson" id="uploadJsonBtn">Вставити JSON (одного підрозділу)</label>
+<input type="text" id="calculationName" placeholder="Назва структурного підрозділу ..." >
     <div class="calculator">
         <div id="formulasContainer"></div>
         <div id="indicatorGroupsContainer"></div>
@@ -431,6 +454,7 @@ section?.classList.toggle('filled', allComplete);
         const reader = new FileReader();
         reader.onload = function(e) {
             const data = JSON.parse(e.target.result);
+            document.getElementById('calculationName').value = data.calculationName || '';
             Object.entries(data).forEach(([variable, years]) => {
                 Object.entries(years).forEach(([year, value]) => {
                     const input = document.querySelector(`input[data-variable="${variable}"][data-year="${year}"]`);
@@ -447,6 +471,7 @@ section?.classList.toggle('filled', allComplete);
     });
 function saveDataToJson() {
     const data = {};
+    data.calculationName = document.getElementById('calculationName').value.trim() || 'Без назви';
     document.querySelectorAll('[data-variable]').forEach(input => {
         const varName = input.dataset.variable;
         const year = parseInt(input.closest('.year-input').querySelector('label').textContent);
