@@ -97,49 +97,39 @@
             width: 100%;
             box-sizing: border-box;
         }
-        #saveJsonBtn {
-            position: fixed;
-            right: 20px;
-            top: 130px;
-            background: #4CAF50;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            z-index: 1000;
-        }
-        #uploadJsonBtn:hover {
-    background: #1976D2;
-}
-#calculationName {
-    width: 305px;
+        #uploadJsonBtn:hover, #saveJsonBtn:hover, #calculationName:hover {
     background: white;
-    position: fixed; 
-    right: 20px; 
-    top: 215px; padding: 8px 16px; 
-    border-radius: 4px; 
-    border: 1px solid black; 
-    z-index: 1000;
+}
+        #saveJsonBtn {
+            top: 173px; 
+            background: #ffae57;
+        }
+#calculationName {
+    width: 235px;
+    background: white;
+    top: 130px;
+    background: #c7c7c7;
 }
 #uploadJsonBtn {
-position: fixed; 
-right: 20px; 
-top: 170px; 
-background: #2196F3; 
-color: white; 
-border: none; 
-padding: 8px 16px; 
-border-radius: 4px; 
-cursor: pointer; 
-z-index: 1000;
+top: 215px;
+background: #52b0fa; 
+}
+#uploadJsonBtn, #calculationName, #saveJsonBtn {
+    padding: 8px 16px;
+    border-radius: 4px; 
+    right: 20px; 
+    position: fixed;
+    border: 1px solid black; 
+    cursor: pointer;
+    z-index: 1000;
 }
     </style>
 </head>
 <body>
-    <button id="saveJsonBtn">Зберегти JSON (одного підрозділу)</button>
+    <button id="saveJsonBtn">2. Збережіть JSON (підрозділу)</button>
     <input type="file" id="uploadJson" accept=".json" hidden>
-<label for="uploadJson" id="uploadJsonBtn">Вставити JSON (одного підрозділу)</label>
-<input type="text" id="calculationName" placeholder="Назва структурного підрозділу ..." >
+<label for="uploadJson" id="uploadJsonBtn">(чи) Вставте JSON (підрозділу)</label>
+<input type="text" id="calculationName" placeholder="1. Введіть назву підрозділу" >
     <div class="calculator">
         <div id="formulasContainer"></div>
         <div id="indicatorGroupsContainer"></div>
