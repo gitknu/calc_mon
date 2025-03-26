@@ -97,6 +97,23 @@
             width: 100%;
             box-sizing: border-box;
         }
+        #multiResultsTable {
+    margin-top: 20px;
+    width: 100%;
+    border: 1px solid black;
+}
+#multiResultsTable th, #multiResultsTable td {
+    padding: 1px;
+    text-align: center;
+    font-size: 0.8em;
+    border: 1px solid black;
+}
+#multiResultsTable th {
+    background-color: #f2f2f2;
+}
+#multiResultsTable tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
         #calculationName::-webkit-input-placeholder, #calculationName::-moz-placeholder, #calculationName:-ms-input-placeholder, #calculationName:-moz-placeholder, #calculationName::placeholder {
     opacity: 1 !important;
 }
@@ -134,20 +151,64 @@ white-space: pre-line;
     </style>
 </head>
 <body>
+    <input type="text" id="calculationName" placeholder="1. Введіть назву підрозділу (краще 4-5 літер) ✏️" >
     <button id="saveJsonBtn">2. Збережіть дані підрозділу (коли ввели їх) 💾</button>
     <input type="file" id="uploadJson" accept=".json" hidden>
 <label for="uploadJson" id="uploadJsonBtn">(чи) Вставте готовий JSON для підрозділу 📕</label>
 <input type="file" id="uploadMultiJson" accept=".json" hidden multiple>
 <label for="uploadMultiJson" id="uploadMultiJsonBtn">(чи) Вставте готові JSONи для підрозділів 📚</label>
-<input type="text" id="calculationName" placeholder="1. Введіть назву підрозділу (кафедри тощо) ✏️" >
     <div class="calculator">
         <div id="indicatorGroupsContainer"></div>
         <div id="formulasContainer"></div>
         <div id="resultsContainer" class="results-container"></div>
+        <div id="multiResultsContainer"></div>
     </div>
 <script>
     let dataStorage = {};
     let indicatorResults = {}; 
+    let multiResults = [];
+document.getElementById('uploadMultiJson').addEventListener('change', function(e) {
+    const files = e.target.files;
+    multiResults = [];
+    Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = JSON.parse(e.target.result);
+            multiResults.push({
+                name: data.calculationName || file.name,
+                results: data.calculatedResults
+            });
+            if (multiResults.length === files.length) {
+                generateMultiResultsTable();
+            }
+        };
+        reader.readAsText(file);
+    });
+});
+function generateMultiResultsTable() {
+    const container = document.getElementById('multiResultsContainer');
+    container.innerHTML = '';
+    if (multiResults.length === 0) return;
+    const table = document.createElement('table');
+    table.id = 'multiResultsTable';
+    const headerRow = table.insertRow();
+    headerRow.insertCell().textContent = 'Підрозділ';
+    for (let i = 1; i <= 37; i++) {
+        const th = document.createElement('th');
+        th.textContent = `I${i}`;
+        headerRow.appendChild(th);
+    }
+    multiResults.forEach(resultData => {
+        const row = table.insertRow();
+        row.insertCell().textContent = resultData.name;
+        for (let i = 1; i <= 37; i++) {
+            const cell = row.insertCell();
+            const value = resultData.results[`I${i}`] || 0;
+            cell.textContent = value.toFixed(4);
+        }
+    });
+    container.appendChild(table);
+}
     const formulasByTab = {
         'I1': 'Р1/(П3 + 0.5*П5 + 0.1*П7)',
         'I2': 'Р2/(П3 + 0.5*П5 + 0.1*П7 + П8)',
