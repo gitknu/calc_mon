@@ -100,18 +100,18 @@
         #uploadJsonBtn:hover, #saveJsonBtn:hover, #calculationName:hover {
     background: white;
 }
-        #saveJsonBtn {
-            top: 173px; 
-            background: #ffae57;
-        }
 #calculationName {
-    width: 235px;
+    top: 30px;
+    width: 345px;
     background: white;
-    top: 130px;
     background: #c7c7c7;
 }
+        #saveJsonBtn {
+            top: 73px; 
+            background: #ffae57;
+        }
 #uploadJsonBtn {
-top: 215px;
+top: 115px;
 background: #52b0fa; 
 }
 #uploadJsonBtn, #calculationName, #saveJsonBtn {
@@ -126,13 +126,13 @@ background: #52b0fa;
     </style>
 </head>
 <body>
-    <button id="saveJsonBtn">2. Збережіть JSON (підрозділу)</button>
+    <button id="saveJsonBtn">2. Збережіть дані підрозділу (коли ввели їх)</button>
     <input type="file" id="uploadJson" accept=".json" hidden>
-<label for="uploadJson" id="uploadJsonBtn">(чи) Вставте JSON (підрозділу)</label>
-<input type="text" id="calculationName" placeholder="1. Введіть назву підрозділу" >
+<label for="uploadJson" id="uploadJsonBtn">(або) Вставте наявні дані у форматі JSON</label>
+<input type="text" id="calculationName" placeholder="1. Введіть назву підрозділу (кафедри тощо)" >
     <div class="calculator">
-        <div id="formulasContainer"></div>
         <div id="indicatorGroupsContainer"></div>
+        <div id="formulasContainer"></div>
         <div id="resultsContainer" class="results-container"></div>
     </div>
 <script>
