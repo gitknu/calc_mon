@@ -97,13 +97,27 @@
             width: 100%;
             box-sizing: border-box;
         }
+        #calculationName::-webkit-input-placeholder { 
+    opacity: 1 !important;
+}
+#calculationName::-moz-placeholder {
+    opacity: 1 !important;
+}
+#calculationName:-ms-input-placeholder {
+    opacity: 1 !important;
+}
+#calculationName:-moz-placeholder { 
+    opacity: 1 !important;
+}
+#calculationName::placeholder {
+    opacity: 1 !important;
+}
         #uploadMultiJsonBtn:hover, #uploadJsonBtn:hover, #saveJsonBtn:hover, #calculationName:hover {
             opacity: 1;
 }
 #calculationName {
     top: 30px;
     width: 365px;
-    background: white;
     background: #c7c7c7;
 }
         #saveJsonBtn {
