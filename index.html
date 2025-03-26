@@ -463,7 +463,13 @@ section?.classList.toggle('filled', allComplete);
     let lines = [];
     lines.push(`Додано файлів підрозділів - ${files.length}, а саме:`);
     lines.push(``);
+    if (truncatedNames.length > 10) {
+    truncatedNames.slice(0, 5).forEach(name => lines.push(`• ${name}`));
+    lines.push('(...)');
+    truncatedNames.slice(-5).forEach(name => lines.push(`• ${name}`));
+} else {
     truncatedNames.forEach(name => lines.push(`• ${name}`));
+}
     lines.push(``);
     lines.push(`Прогорніть нижче та оцініть весь напрям ⬇️`);
     lines.push(`Чи натисніть знову аби додати інші файли 💾`);
