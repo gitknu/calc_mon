@@ -119,6 +119,7 @@ background: #52b0fa;
 #uploadMultiJsonBtn {
 top: 137px;
 background: #52fa92; 
+white-space: pre-line;
 }
 #uploadMultiJsonBtn, #uploadJsonBtn, #calculationName, #saveJsonBtn {
     padding: 5px 16px;
@@ -447,6 +448,28 @@ section?.classList.toggle('filled', allComplete);
         });
     }
     initializeCalculator();
+    document.getElementById('uploadMultiJson').addEventListener('change', function(e) {
+    const files = Array.from(e.target.files);
+    const button = document.getElementById('uploadMultiJsonBtn');
+    if (files.length === 0) {
+        button.textContent = '(чи) Вставте готові JSONи для підрозділів 📚';
+        button.style.opacity = '0.65';
+        return;
+    }
+    const truncatedNames = files.map(file => {
+        const name = file.name;
+        return name.length > 40 ? `${name.substring(0, 40)}` : name;
+    });
+    let lines = [];
+    lines.push(`Додано файлів підрозділів - ${files.length}, а саме:`);
+    lines.push(``);
+    truncatedNames.forEach(name => lines.push(`• ${name}`));
+    lines.push(``);
+    lines.push(`Прогорніть нижче та оцініть весь напрям ⬇️`);
+    lines.push(`Чи натисніть знову аби додати інші файли 💾`);
+    button.textContent = lines.join('\n');
+    button.style.opacity = '1';
+});
     document.getElementById('uploadJson').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
