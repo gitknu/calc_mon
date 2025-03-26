@@ -458,15 +458,15 @@ section?.classList.toggle('filled', allComplete);
     }
     const truncatedNames = files.map(file => {
         const name = file.name;
-        return name.length > 40 ? `${name.substring(0, 40)}` : name;
+        return name.length > 35 ? `${name.substring(0, 35)}` : name;
     });
     let lines = [];
     lines.push(`Додано файлів підрозділів - ${files.length}, а саме:`);
     lines.push(``);
-    if (truncatedNames.length > 10) {
-    truncatedNames.slice(0, 5).forEach(name => lines.push(`• ${name}`));
-    lines.push('(...)');
-    truncatedNames.slice(-5).forEach(name => lines.push(`• ${name}`));
+if (truncatedNames.length > 20) {
+    truncatedNames.slice(0, 10).forEach(name => lines.push(`• ${name}`));
+    lines.push('( ... )');
+    truncatedNames.slice(-10).forEach(name => lines.push(`• ${name}`));
 } else {
     truncatedNames.forEach(name => lines.push(`• ${name}`));
 }
