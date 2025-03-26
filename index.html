@@ -479,8 +479,17 @@ function saveDataToJson() {
         data[varName][year] = value || null;
     });
     data.calculatedResults = indicatorResults;
-    const dateStr = new Date().toISOString().slice(0, 10);
-    const filename = `file_${dateStr}.json`;
+    const calculationNameForFile = document.getElementById('calculationName').value.trim();
+    const sanitizedName = calculationNameForFile 
+        ? calculationNameForFile.replace(/ /g, '_') 
+        : 'Без_назви';
+    const now = new Date();
+    const timeStr = [
+        now.getHours().toString().padStart(2, '0'),
+        now.getMinutes().toString().padStart(2, '0'),
+        now.getSeconds().toString().padStart(2, '0')
+    ].join('');
+    const filename = `${sanitizedName}_${timeStr}.json`;
     const jsonStr = JSON.stringify(data, null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
