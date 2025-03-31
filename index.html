@@ -457,23 +457,33 @@ function calculateAll() {
     indicatorValues = {};
     indicatorResults = {}; 
     document.querySelectorAll('[data-variable]').forEach(input => {
-        const varName = input.dataset.variable;
-        const year = parseInt(input.closest('.year-input').querySelector('label').textContent);
-        indicatorValues[varName] = indicatorValues[varName] || {};
-        indicatorValues[varName][year] = parseFloat(input.value) || 0;
-    });
+    const varName = input.dataset.variable;
+    const year = parseInt(input.closest('.year-input').querySelector('label').textContent);
+    indicatorValues[varName] = indicatorValues[varName] || {};
+    const value = input.value.trim();
+    indicatorValues[varName][year] = value === '' ? null : parseFloat(value);
+});
     const averages = {};
     Object.keys(indicatorValues).forEach(varName => {
-        const yearsData = indicatorValues[varName];
-        const sum = Object.values(yearsData).reduce((acc, val) => acc + val, 0);
-        averages[varName] = sum / Object.keys(yearsData).length || 0;
-    });
+    const yearsData = indicatorValues[varName];
+    const allNull = Object.values(yearsData).every(val => val === null);
+    if (allNull) {
+        averages[varName] = null;
+    } else {
+        const sum = Object.values(yearsData).reduce((acc, val) => acc + (val !== null ? val : 0), 0);
+        averages[varName] = sum / 5;
+    }
+});
     Object.entries(averages).forEach(([varName, avg]) => {
-        const avgElement = document.getElementById(`average_${varName}`);
-        if (avgElement) {
+    const avgElement = document.getElementById(`average_${varName}`);
+    if (avgElement) {
+        if (avg === null) {
+            avgElement.textContent = '';
+        } else {
             avgElement.textContent = `(середнє: ${avg.toFixed(2)})`;
         }
-    });
+    }
+});
     Object.entries(formulasByTab).forEach(([indicator, formula]) => {
         const parsed = parseFormula(formula);
         if (!parsed) return;
@@ -627,26 +637,28 @@ function saveDataToJson() {
     const data = {};
     data.calculationName = document.getElementById('calculationName').value.trim() || 'Без назви';
     document.querySelectorAll('[data-variable]').forEach(input => {
-        const varName = input.dataset.variable;
-        const year = parseInt(input.closest('.year-input').querySelector('label').textContent);
-        const value = input.value.trim();
-        if (!data[varName]) data[varName] = {};
-        data[varName][year] = value || null;
-    });
+    const varName = input.dataset.variable;
+    const year = parseInt(input.closest('.year-input').querySelector('label').textContent);
+    const value = input.value.trim();
+    if (!data[varName]) data[varName] = {};
+    data[varName][year] = value === '' ? null : parseFloat(value);
+});
     data.averages = {};
     const yearsToAverage = [2020, 2021, 2022, 2023, 2024];
     Object.keys(data).forEach(key => {
-        if (key === 'calculationName' || key === 'calculatedResults' || key === 'averages') return;
-        const variableData = data[key];
-        let sum = 0;
-        yearsToAverage.forEach(year => {
-            const value = variableData[year] !== null && variableData[year] !== undefined 
-                ? parseFloat(variableData[year]) || 0 
-                : 0;
-            sum += value;
-        });
-        data.averages[key] = sum / yearsToAverage.length;
-    });
+    if (key === 'calculationName' || key === 'calculatedResults' || key === 'averages') return;
+    const variableData = data[key];
+    const validValues = yearsToAverage
+        .map(year => variableData[year] !== null ? parseFloat(variableData[year]) : null)
+        .filter(val => val !== null);
+    
+    if (validValues.length === 0) {
+        data.averages[key] = null;
+    } else {
+        const sum = validValues.reduce((acc, val) => acc + val, 0);
+        data.averages[key] = sum / validValues.length;
+    }
+});
     data.calculatedResults = indicatorResults;
     const calculationNameForFile = document.getElementById('calculationName').value.trim();
     const sanitizedName = calculationNameForFile 
