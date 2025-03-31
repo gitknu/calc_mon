@@ -413,21 +413,21 @@ function initializeCalculator() {
             const group = document.createElement('div');
             group.className = 'indicator-group';
             group.innerHTML = `
-                <h3>${variable}</h3>
-                <p>${originalDescriptions[variable] || ''}</p>
-                <div class="year-inputs">
-                    ${[2020, 2021, 2022, 2023, 2024].map(year => `
-                        <div class="year-input">
-                            <label>${year}</label>
-                            <input type="number" 
-                                   data-variable="${variable}"
-                                   data-year="${year}" 
-                                   step="0.1" 
-                                   value="">
-                        </div>
-                    `).join('')}
-                </div>
-            `;
+    <h3>${variable} <span class="average-value" id="average_${variable}"></span></h3>
+    <p>${originalDescriptions[variable] || ''}</p>
+    <div class="year-inputs">
+        ${[2020, 2021, 2022, 2023, 2024].map(year => `
+            <div class="year-input">
+                <label>${year}</label>
+                <input type="number" 
+                       data-variable="${variable}"
+                       data-year="${year}" 
+                       step="0.1" 
+                       value="">
+            </div>
+        `).join('')}
+    </div>
+`;
             indicatorsContainer.appendChild(group);
         });
         const formulasContainer = document.getElementById('formulasContainer');
@@ -462,18 +462,21 @@ function calculateAll() {
         indicatorValues[varName] = indicatorValues[varName] || {};
         indicatorValues[varName][year] = parseFloat(input.value) || 0;
     });
+    const averages = {};
+    Object.keys(indicatorValues).forEach(varName => {
+        const yearsData = indicatorValues[varName];
+        const sum = Object.values(yearsData).reduce((acc, val) => acc + val, 0);
+        averages[varName] = sum / Object.keys(yearsData).length || 0;
+    });
+    Object.entries(averages).forEach(([varName, avg]) => {
+        const avgElement = document.getElementById(`average_${varName}`);
+        if (avgElement) {
+            avgElement.textContent = `(середнє: ${avg.toFixed(2)})`;
+        }
+    });
     Object.entries(formulasByTab).forEach(([indicator, formula]) => {
         const parsed = parseFormula(formula);
         if (!parsed) return;
-        const averages = {};
-        ['numerator', 'denominator'].forEach(part => {
-            parsed[part].forEach(term => {
-                const varName = term.variable;
-                const years = Object.keys(indicatorValues[varName] || {}).map(Number);
-                const sum = years.reduce((acc, year) => acc + (indicatorValues[varName][year] || 0), 0);
-                averages[varName] = sum / years.length || 0;
-            });
-        });
         const numerator = parsed.numerator.reduce((acc, term) => 
             acc + (averages[term.variable] || 0) * term.coefficient, 0);
         const denominator = parsed.denominator.reduce((acc, term) => 
