@@ -634,6 +634,20 @@ function saveDataToJson() {
         if (!data[varName]) data[varName] = {};
         data[varName][year] = value || null;
     });
+    data.averages = {};
+    const yearsToAverage = [2020, 2021, 2022, 2023, 2024];
+    Object.keys(data).forEach(key => {
+        if (key === 'calculationName' || key === 'calculatedResults' || key === 'averages') return;
+        const variableData = data[key];
+        let sum = 0;
+        yearsToAverage.forEach(year => {
+            const value = variableData[year] !== null && variableData[year] !== undefined 
+                ? parseFloat(variableData[year]) || 0 
+                : 0;
+            sum += value;
+        });
+        data.averages[key] = sum / yearsToAverage.length;
+    });
     data.calculatedResults = indicatorResults;
     const calculationNameForFile = document.getElementById('calculationName').value.trim();
     const sanitizedName = calculationNameForFile 
