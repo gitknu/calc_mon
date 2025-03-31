@@ -1,0 +1,661 @@
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Розрахунок показників</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+    <style>
+    .formula-section.filled,.indicator-group.filled {
+    background-color: #bfff96;
+}
+    #indicatorGroupsContainer {
+    align-items: start;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+}
+.indicator-group {
+    justify-content: space-between;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    border-radius: 5px;
+    border: 2px dashed black;
+    border-radius: 8px;
+}
+.indicator-group .year-inputs {
+    margin-top: auto;
+}
+.indicator-group h3 {
+    font-size: 1em;
+    margin: 5px 0;
+}
+.indicator-group p {
+    font-size: 0.85em;
+    white-space: normal;
+    margin: 5px 0 10px;
+}
+.year-input label {
+    font-size: 0.8em;
+}
+.year-input input {
+    padding: 4px;
+    font-size: 0.85em;
+}
+        #formulasContainer {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+        }
+        .formula-section {
+            margin-bottom: 15px;
+            padding: 10px;
+            min-height: 150px;
+            break-inside: avoid;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .input-incomplete {
+            color: #888 !important;
+        }
+        .input-complete, .highlight-constant {
+            color: #000 !important;
+        }
+        .formula-container {
+            transition: opacity 0.2s ease-in-out;
+            opacity: 1;
+            margin: 1px 0;
+            padding: 1px;
+            font-size: 0.9em;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #f5f5f5;
+            position: relative;
+        }
+        .calculator {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+        }
+        .year-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 5px;
+}
+        .year-input {
+            display: flex;
+            flex-direction: column;
+        }
+        input {
+            padding: 6px;
+            border: 1px dashed black;
+            border-radius: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        #sortedResultsTable {
+    margin-top: 20px;
+    width: 100%;
+    border: 1px solid black;
+}
+#sortedResultsTable th, #sortedResultsTable td {
+    padding: 1px;
+    text-align: center;
+    font-size: 0.8em;
+    border: 1px solid black;
+}
+#sortedResultsTable th {
+    background-color: #f2f2f2;
+}
+#sortedResultsTable tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+        #multiResultsTable {
+    margin-top: 20px;
+    width: 100%;
+    border: 1px solid black;
+}
+#multiResultsTable th, #multiResultsTable td {
+    padding: 1px;
+    text-align: center;
+    font-size: 0.8em;
+    border: 1px solid black;
+}
+#multiResultsTable th {
+    background-color: #f2f2f2;
+}
+#multiResultsTable tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+        #calculationName::-webkit-input-placeholder, #calculationName::-moz-placeholder, #calculationName:-ms-input-placeholder, #calculationName:-moz-placeholder, #calculationName::placeholder {
+    opacity: 1 !important;
+}
+        #uploadMultiJsonBtn:hover, #uploadJsonBtn:hover, #saveJsonBtn:hover, #calculationName:hover {
+            opacity: 1;
+}
+#calculationName {
+    top: 30px;
+    width: 365px;
+    background: #c7c7c7;
+}
+        #saveJsonBtn {
+            top: 65px; 
+            background: #ffae57;
+        }
+#uploadJsonBtn {
+top: 100px;
+background: #52b0fa; 
+}
+#uploadMultiJsonBtn {
+top: 137px;
+background: #52fa92; 
+white-space: pre-line;
+}
+#uploadMultiJsonBtn, #uploadJsonBtn, #calculationName, #saveJsonBtn {
+    padding: 5px 16px;
+    border-radius: 4px; 
+    right: 20px; 
+    position: fixed;
+    border: 1px solid black; 
+    cursor: pointer;
+    opacity:0.65;
+    z-index: 1000;
+}
+    </style>
+</head>
+<body>
+    <input type="text" id="calculationName" placeholder="1. Введіть назву підрозділу (краще 4-5 літер) ✏️" >
+    <button id="saveJsonBtn">2. Збережіть дані підрозділу (коли ввели їх) 💾</button>
+    <input type="file" id="uploadJson" accept=".json" hidden>
+<label for="uploadJson" id="uploadJsonBtn">(чи) Вставте готовий JSON для підрозділу 📕</label>
+<input type="file" id="uploadMultiJson" accept=".json" hidden multiple>
+<label for="uploadMultiJson" id="uploadMultiJsonBtn">(чи) Вставте готові JSONи для підрозділів 📚</label>
+    <div class="calculator">
+        <div id="indicatorGroupsContainer"></div>
+        <div id="formulasContainer"></div>
+        <div id="resultsContainer" class="results-container"></div>
+        <div id="multiResultsContainer"></div>
+        <div id="sortedResultsContainer"></div>
+    </div>
+<script>
+    let dataStorage = {};
+    let indicatorResults = {}; 
+    let multiResults = [];
+document.getElementById('uploadMultiJson').addEventListener('change', function(e) {
+    const files = e.target.files;
+    multiResults = [];
+    Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = JSON.parse(e.target.result);
+            multiResults.push({
+                name: data.calculationName || file.name,
+                results: data.calculatedResults
+            });
+            if (multiResults.length === files.length) {
+                generateMultiResultsTable();
+            }
+        };
+        reader.readAsText(file);
+    });
+});
+function generateMultiResultsTable() {
+    const container = document.getElementById('multiResultsContainer');
+    container.innerHTML = '';
+    if (multiResults.length === 0) return;
+    const originalTable = document.createElement('table');
+    originalTable.id = 'multiResultsTable';
+    const headerRow = originalTable.insertRow();
+    headerRow.insertCell().textContent = 'Підрозділ';
+    for (let i = 1; i <= 37; i++) {
+        const th = document.createElement('th');
+        th.textContent = `I${i}`;
+        headerRow.appendChild(th);
+    }
+    multiResults.forEach(resultData => {
+        const row = originalTable.insertRow();
+        row.insertCell().textContent = resultData.name;
+        for (let i = 1; i <= 37; i++) {
+            const cell = row.insertCell();
+            const value = resultData.results[`I${i}`] || 0;
+            cell.textContent = value.toFixed(4);
+        }
+    });
+    container.appendChild(originalTable);
+    const sortedContainer = document.getElementById('sortedResultsContainer');
+    sortedContainer.innerHTML = '';
+    const sortedTable = document.createElement('table');
+    sortedTable.id = 'sortedResultsTable';
+    const sortedData = {};
+    for (let i = 1; i <= 37; i++) {
+        const indicator = `I${i}`;
+        const values = multiResults.map(dept => ({
+            value: dept.results[indicator] || 0,
+            name: dept.name
+        }));
+        values.sort((a, b) => b.value - a.value);
+        sortedData[indicator] = values;
+    }
+    const medians = {};
+    Object.keys(sortedData).forEach(indicator => {
+        const values = sortedData[indicator];
+        const length = values.length;
+        if (length === 0) return;
+        if (length % 2 === 1) { // Odd number of values
+            medians[indicator] = [Math.floor(length / 2)];
+        } else { // Even number of values
+            medians[indicator] = [length / 2 - 1, length / 2];
+        }
+    });
+    const sortedHeader = sortedTable.insertRow();
+    for (let i = 1; i <= 37; i++) {
+        const th = document.createElement('th');
+        th.textContent = `I${i}`;
+        sortedHeader.appendChild(th);
+    }
+    const maxRows = Math.max(...Object.values(sortedData).map(arr => arr.length));
+    for (let rank = 0; rank < maxRows; rank++) {
+        const row = sortedTable.insertRow();
+        for (let i = 1; i <= 37; i++) {
+            const indicator = `I${i}`;
+            const cell = row.insertCell();
+            if (sortedData[indicator][rank]) {
+                cell.textContent = sortedData[indicator][rank].value.toFixed(4);
+                if (medians[indicator]?.includes(rank)) {
+                    const length = sortedData[indicator].length;
+                    cell.style.backgroundColor = length % 2 === 1 ? '#fc8b83' : '#ff0004';
+                }
+            }
+        }
+    }
+    sortedContainer.appendChild(sortedTable);
+    window.scrollTo(0, document.body.scrollHeight);
+}
+    const formulasByTab = {
+        'I1': 'Р1/(П3 + 0.5*П5 + 0.1*П7)',
+        'I2': 'Р2/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I3': 'П6/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I4': 'П3/(П3 + П5)',
+        'I5': '(П9/(П3 + П5 + П7 + П8)) - 0.5',
+        'I6': 'П10/(П3 + П5 + П8)',
+        'I7': '0.3*Р23 + 0.1*Р24/(П3 + 0.5*П5 + П8)',   
+        'I8': 'Ф1/(П3 + 0.5*П5 + 0.1*П7 + П8)',  
+        'I9': 'Ф2/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I10': 'Ф3/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I11': 'Ф4/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I12': 'Ф5/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I13': 'Ф6/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I14': 'Ф7/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I15': 'Р3/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I16': 'Р4/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I17': 'Р5/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I18': 'Р6/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I19': 'Р7/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I20': 'Р8/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I21': 'Р7-8В/(Р7+Р8)',
+        'I22': 'Р9/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I23': 'Р10/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I24': 'Р11/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I25': 'Р12/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I26': 'Р13-1/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I27': 'Р13-2/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I28': 'Р13-3/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I29': 'Р14/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I30': 'Р15/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I31': 'Р16/Р15',
+        'I32': 'Р17/Р15',
+        'I33': 'Р18/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I34': 'Р19/Р18',
+        'I35': 'Р20/(П3 + 0.5*П5 + 0.1*П7 + П8)',
+        'I36': 'Р21/Р20',
+        'I37': 'Р22/Р20',
+        'I_sum': 'I1*1 + I2*1 + I3*1 + I4*1 + I5*0.5 + I6*1 + I7*1 + I8*3 + I9*2 + I10*1 + I11*3 + I12*2 + I13*1 + I14*0.5 + I15*1.5 + I16*1.2 + I17*1 + I18*1 + I19*1.5 + I20*0.75 + I21*0.35 + I22*0.5 + I23*0.2 + I24*1 + I25*1 + I26*3 + I27*1 + I28*1 + I29*4 + I30*0.5 + I31*2 + I32*4 + I33*1 + I34*2 + I35*0.5 + I36*2 + I37*4'
+    };
+    const originalDescriptions = {
+        'П1': 'Чисельність усіх працівників наукової установи / закладу вищої освіти за основним місцем роботи, осіб',
+        'П2': 'Чисельність штатних одиниць наукових працівників (далі – НП) відповідно до штатного розпису, осіб',
+        'П3': 'Чисельність НП за основним місцем роботи, осіб',
+        'П4': 'Чисельність штатних одиниць науково-педагогічних працівників (далі – НПП) відповідно до штатного розпису, осіб',
+        'П5': 'Чисельність НПП за основним місцем роботи, осіб',
+        'П6': 'Чисельність молодих учених з числа НП та НПП за основним місцем роботи, осіб',
+        'П7': 'Чисельність аспірантів денної форми навчання, осіб',
+        'П8': 'Чисельність докторантів, осіб',
+        'П9': 'Оцінка гендерного балансу (кількість жінок з числа НП та НПП за основним місцем роботи), осіб',
+        'П10': 'Чисельність докторів філософії / кандидатів наук  та докторів наук, з числа НП та НПП та докторантів, які працюють за основним місцем роботи, осіб',
+        'Р1': 'Кількість НП, НПП та / або аспірантів, яким  присуджено науковий ступінь доктора філософії  (кандидата наук) / освітньо-творчий ступінь  доктора мистецтва, які працювали за основним  місцем роботи та / або навчались у науковій  установі / закладі вищої освіти, осіб',
+        'Р2': 'Кількість НП, НПП та/або докторантів, яким  присуджено науковий ступінь доктора наук, які  працювали за основним місцем роботи та / або  навчались в науковій установі / закладі вищої  освіти, осіб',
+        'Р3': 'Кількість монографій, які індексуються у Scopus та / або Web of Science (далі - WoS), од.',
+        'Р4': 'Кількість монографій, які опубліковані за кордоном мовами країн ОЕСР та / або ЄС, крім монографій, які враховані у показнику Р3, од.',
+        'Р5': 'Кількість монографій, які опубліковані в Україні та іншиї монографій (крім монографій, які враховано у показниках Р3 та Р4), од.',
+        'Р6': 'Кількість опублікованих розділів монографій, які індексуються у Scopus та/або WoS, од.',
+        'Р7': 'Кількість наукових статей, які індексуються у Scopus та/або WoS в наукових журналаї з квартилями Q1, Q2**, од.',
+        'Р8': 'Кількість наукових статей, які індексуються у Scopus та/або WoS в наукових журналах з квартилями Q3, Q4**, од.',
+        'Р7-8В': 'Кількість наукових статей, із зазначених у показниках Р7 та Р8, опубліковані у відкритому доступі, од.',
+        'Р9': 'Кількість наукових статей, які опубліковані у фахових виданнях України категорії Б та/або публікацій, які індексуються у Scopus та / або WoS (крім публікацій, які враховано у показниках Р7 та Р8), од.',
+        'Р10': 'Кількість опублікованих препринтів***, які мають DOI, од.',
+        'Р11': 'Кількість опублікованих словників, довідників, підручників, посібників, хрестоматій, каталогів та енциклопедій, автор, ар.',
+        'Р12': 'Кількість наукових видань (журналів), що включено до фахових наукових видань України категорії А, одночасним засновником (співзасновником) та видвацем яких є наукова установа / заклад вищої освіти, та які індексувались у звітному році у наукометричних базах даних  Scopus та/або WoS, од.',
+        'Р(12-1)': 'Кількість наукових видань (журналів), що включено до фахових наукових видань України категорії Б, одночасним засновником (співзасновником) та видавцем яких є наукова установа / заклад вищої освіти, од.',
+        'Р(12-2)': 'Кількість опублікованих наборів дослідницьких (наукових) даних, зокрема FAIR-даних****, од.',
+        'Р13-1': 'Кількість отриманих патентнів України на винаходи та / або сорти рослин та / або породи тварин, од.',
+        'Р13-2': 'Кількість отриманих патентів України на корисні моделі, од.',
+        'Р13-3': 'Кількість отриманих в Україні свідоцтв авторського права на компютерні програми, од.',
+        'Р14': 'Кількість отриманих міжнародних патентів, які обліковуються міжнародними патентними базами, од.',
+        'Р15': 'Кількість поданих та прийнятих до розгляду заявок на міжнародні гранти з виконання наукових досліджень і розробок за пріоритетними програмами (Горизонт 2020, Горизонт Європа, Євратом, НАТО, УНТЦ), од.',
+        'Р16': 'Кількість заявок, із заначених у показнику Р15, у яких наукова установа / заклад вищої освіти є координатором (оснвним заявником), од.',
+        'Р17': 'Кількість заявок, із зазначених у показнику Р15, які визначені переможцями та профінансовані, од.',
+        'Р18': 'Кількість поданих та прийнятих до розгляду заявок на загальнодердавні***** конкурсні відбори проєктів з виконання наукових досліджень розробок, які фінансуються за спецфондом (конкурси Національного фонду досліджень України, Міністерства освіти і науки України, Національної академії наук України, Українського фонду стартапів, Українського культурного фонду), де наукова установа / заклад вищої освіти є координатором (заявником), од.',
+        'Р19': 'Кількість заявок, які визначені переможцями загальнодержавних***** конкурсних відборів, та отримали фінансування на виконання наукових досліджень і розробок, які фінансуються за спецфондом (конкурси Національного фонцу досліджень України, Міністерства освіти і науки України, Українського фонду стартапів, Національної академії наук України, Українського культурного фонду), де наукова установа / заклад вищої освіти є координатором (заявником), од.',
+        'Р20': 'Кількість поданих та прийнятих до розгляду заявок на інші міжнародні грантові програми, зокрема, ті, які мають наукову складову (Erasmus+, Creative Europe та інші наукові грантові програми країн ЄС, які обліковуються на офіційних ресурсах Європейської комісії, од.',
+        'Р21': 'Кількість заявок, із зазначених у показнику Р20, у яких наукова установа/заклад вищої освіти є координатором ( основним заявником), од.',
+        'Р22': 'Кількість заявок, із зазначених у показнику Р20, які визначені переможцями та профінансовані, од.',
+        'Р23': 'Кількість реалізованих експертних ролей НП та НПП (експертиза міжнародних конкурсів: Горизонт 2020, Горизонт Європа, Євратом, Erasmus+), од.',
+        'Р24': 'Кількість реалізованих експертних ролей НП та НПП (експертиза загальнодержавних***** конкурсних відборів Національного фонду досліджень України, Міністерства освіти і науки України; участь в експертних групах та комісіях МОН з питань державної атестації наукових установ / закладів вищої освіти та / або процедур присудження наукового ступеня у разовій спеціалізованої вченої ради закладу вищої освіти, наукової установи про присудження ступеня доктора філософії), од.',
+        'Ф1': 'Обсяг коштів спеціального фонду на виконання наукових досліджень і розробок, отриманих за результатами міжнародного конкурсного відбору серед пріоритетних наукових програм (гранти (проєкти) Горизонт 2020, Горизонт Європа, НАТО, Євратом, інші міжнародні проєкти, зареєстровані відповідно до Порядку реєстрації міжнародних науково-технічних програм і проєктів, що виконуються в рамках міжнародного науково-технічного співробітництва українськими вченими, а також грантів, що надаються в рамках такого співробітництва, затвердженого наказом Міністерства освіти і науки України від 20 листопада 2017 року №1507, зареєстрованого в Міністерстві юстиції України 27 грудня 2017 року за №1564/31432)',
+        'Ф2': 'Обсяг коштів спеціального фонду на виконання наукових досліджень і розробоко, отриманих за результатами міжнародних конкурсних відборів (крім грантів (проєктів), врахованих у показнику Ф1), а також гранти (проєкти) з науковою складовою) (Erasmus+, Creative Europe та інші наукові грантові програми країн ЄС та/або ОЕСР)',
+        'Ф3': 'Обсяг коштів спеціального фонду, отриманих на виконання наукових досліджень і розробок, які за результатами загальнодержавних***** конкурсних відборів фінансуються із спеціального фонду Державного бюджету України (державні наукові гранти, проєкти та конкурси)',
+        'Ф4': 'Обсяг коштів спеціального фонду, отриманих на виконання наукових (науково-технічних) робіт та послуг за господарськими договорами/контрактами та/або ліцензійними угодами, які фінансуються іноземними фізичними/юридичними особами (окрім Ф1 та Ф2)',
+        'Ф5': 'Обсяг коштів спеціального фонду, отриманих на виконання наукових (науково-технічних) робіт та послуг за господарськими договорами/контрактами та/або ліцензійними угодами, які фінасуються українськими фізичними / юридичними особами (окрім Ф3)',
+        'Ф(5-1)': 'Обсяг коштів спеціального фонду, отриманих на рахунки наукового парку, засновником (співзасновником) якого є НУ / ЗВО, на виконання наукових (науково-технічних) робіт на надання послуг за господарськими договорами / контрактами та / або ліцензійними угодами. (Кошти, що надійшли на рахунки наукового парку, зараховуються у частці, яка відповідає частці НУ / ЗВО, у статутному капіталі наукового парку)',
+        'Ф6': 'Балансова вартість придбаного, отриманого у власність наукового обладнання',
+        'Ф7*': 'Витрати на розвиток наукової діяльності з позанаукових рахунків наукової установи / закладу вищої освіти, окрім фонду заробітної плати НПП, відповідно до Формули розподілу видатків державного бюджету на визу освіту між закладами вищої освіти, затвердженою постановою Кабінету Міністрів України від 24 грудня 2019 року №1146, сталих (ендавмент) фондів ЗВО, внутрішніх грантів на дослідження (окрім фінансування досліджень із загального фонду) тощо)',
+        '(Ф8)': 'Капітальні видатки на обладнання / устаткування для підвищення енергоефективності наукової установи / закладу вищої освіти, впровадження технологій зеленої енергетики (окрім утеплення, санації будівель тощо)',
+        '(Ф9)': 'Річний фонд заробітної плати НП',
+        '(Ф10*)': 'Річний фонд заробітної плати НПП******',
+    }; 
+    function adjustIndicatorHeights() {
+    const groups = Array.from(document.querySelectorAll('.indicator-group'));
+    const rows = [];
+    while(groups.length) {
+        rows.push(groups.splice(0, 3));
+    }
+    rows.forEach(row => {
+        const maxHeight = Math.max(...row.map(group => group.offsetHeight));
+        row.forEach(group => group.style.height = `${maxHeight}px`);
+    });
+}
+    let indicatorValues = {};
+function updateGroupBackgroundColors() {
+    document.querySelectorAll('.indicator-group').forEach(group => {
+        const inputs = group.querySelectorAll('input');
+        const allFilled = Array.from(inputs).every(input => input.value.trim() !== '');
+        group.classList.toggle('filled', allFilled);
+    });
+}
+function initializeCalculator() {
+        const allIndicators = new Set();
+        Object.values(formulasByTab).forEach(formula => {
+            const parsed = parseFormula(formula);
+            if (parsed) {
+                parsed.numerator.forEach(t => allIndicators.add(t.variable));
+                parsed.denominator.forEach(t => allIndicators.add(t.variable));
+            }
+        });
+        const sortedIndicators = Array.from(allIndicators).sort((a, b) => {
+            const getParts = (indicator) => {
+                const match = indicator.match(/^([^\d]*)(\d+)/);
+                return {
+                    prefix: match ? match[1] : indicator,
+                    num: match ? parseInt(match[2]) : 0
+                };
+            };
+            const aParts = getParts(a);
+            const bParts = getParts(b);
+            const prefixOrder = { 'Р': 1, 'П': 2, 'Ф': 3 };
+            const aOrder = prefixOrder[aParts.prefix] || 4;
+            const bOrder = prefixOrder[bParts.prefix] || 4;
+            if (aOrder !== bOrder) return aOrder - bOrder;
+            if (aParts.num !== bParts.num) return aParts.num - bParts.num;
+            return a.localeCompare(b);
+        });
+        const indicatorsContainer = document.getElementById('indicatorGroupsContainer');
+        sortedIndicators.forEach(variable => {
+            const group = document.createElement('div');
+            group.className = 'indicator-group';
+            group.innerHTML = `
+                <h3>${variable}</h3>
+                <p>${originalDescriptions[variable] || ''}</p>
+                <div class="year-inputs">
+                    ${[2020, 2021, 2022, 2023, 2024].map(year => `
+                        <div class="year-input">
+                            <label>${year}</label>
+                            <input type="number" 
+                                   data-variable="${variable}"
+                                   data-year="${year}" 
+                                   step="0.1" 
+                                   value="">
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            indicatorsContainer.appendChild(group);
+        });
+        const formulasContainer = document.getElementById('formulasContainer');
+        Object.entries(formulasByTab).forEach(([indicator, formula]) => {
+            const section = document.createElement('div');
+            section.className = 'formula-section';
+            section.setAttribute('data-indicator', indicator);  // Add this line
+            section.innerHTML = `
+                <div class="formula-container" id="formula_${indicator}"></div>
+                <div id="result_${indicator}"></div>
+            `;
+            formulasContainer.appendChild(section);
+        });
+        updateFormulaHighlights();
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', () => {
+                calculateAll();
+                updateFormulaHighlights();
+                updateGroupBackgroundColors(); 
+            });
+        });
+        calculateAll();
+        updateGroupBackgroundColors();
+        adjustIndicatorHeights();
+}
+function calculateAll() {
+    indicatorValues = {};
+    indicatorResults = {}; 
+    document.querySelectorAll('[data-variable]').forEach(input => {
+        const varName = input.dataset.variable;
+        const year = parseInt(input.closest('.year-input').querySelector('label').textContent);
+        indicatorValues[varName] = indicatorValues[varName] || {};
+        indicatorValues[varName][year] = parseFloat(input.value) || 0;
+    });
+    Object.entries(formulasByTab).forEach(([indicator, formula]) => {
+        const parsed = parseFormula(formula);
+        if (!parsed) return;
+        const averages = {};
+        ['numerator', 'denominator'].forEach(part => {
+            parsed[part].forEach(term => {
+                const varName = term.variable;
+                const years = Object.keys(indicatorValues[varName] || {}).map(Number);
+                const sum = years.reduce((acc, year) => acc + (indicatorValues[varName][year] || 0), 0);
+                averages[varName] = sum / years.length || 0;
+            });
+        });
+        const numerator = parsed.numerator.reduce((acc, term) => 
+            acc + (averages[term.variable] || 0) * term.coefficient, 0);
+        const denominator = parsed.denominator.reduce((acc, term) => 
+            acc + (averages[term.variable] || 0) * term.coefficient, 0);
+        let result = denominator !== 0 ? numerator / denominator : 0;
+        if (parsed.subtractConstant !== 0) {
+            result = Math.abs(result - parsed.subtractConstant);
+        }
+        indicatorResults[indicator] = result;
+        document.getElementById(`result_${indicator}`).innerHTML = `
+            <p><b>${indicator} = ${result.toFixed(4)}</b></p>
+        `;
+    });
+}
+    function parseFormula(formula) {
+        if (formula.includes(') - 0.5')) {
+            const mainPart = formula.replace(') - 0.5', '');
+            const parts = mainPart.split('/');
+            if (parts.length !== 2) return null;
+            return parseFormulaParts(parts[0], parts[1], 0.5);
+        }
+        const parts = formula.split('/');
+        if (parts.length !== 2) return null;
+        return parseFormulaParts(parts[0], parts[1], 0);
+    }
+    function parseFormulaParts(numPart, denPart, subtract) {
+        return {
+            numerator: parseTerms(numPart),
+            denominator: parseTerms(denPart),
+            subtractConstant: subtract
+        };
+    }
+    function parseTerms(expression) {
+        return expression.split('+').map(term => {
+            const cleaned = term.trim().replace(/[()]/g, '');
+            const [coeff, ...vars] = cleaned.split('*').map(p => p.trim());
+            return {
+                coefficient: parseFloat(coeff) || 1,
+                variable: vars.join('*') || coeff
+            };
+        });
+    }
+    function updateFormulaHighlights() {
+        Object.entries(formulasByTab).forEach(([indicator, formula]) => {
+            const container = document.getElementById(`formula_${indicator}`);
+            const parsed = parseFormula(formula);
+            if (!parsed) return;
+            const tempDiv = document.createElement('div');
+            tempDiv.style.visibility = 'hidden';
+            tempDiv.style.position = 'absolute';
+            const formulaHTML = generateFormulaHTML(indicator, parsed);
+            const variables = new Set();
+parsed.numerator.forEach(term => variables.add(term.variable));
+parsed.denominator.forEach(term => variables.add(term.variable));
+const allComplete = Array.from(variables).every(v => isVariableComplete(v));
+const section = document.querySelector(`.formula-section[data-indicator="${indicator}"]`);
+section?.classList.toggle('filled', allComplete);
+            tempDiv.innerHTML = formulaHTML;
+            document.body.appendChild(tempDiv);
+            MathJax.Hub.Queue(() => {
+                MathJax.Hub.Typeset(tempDiv, () => {
+                    container.innerHTML = tempDiv.innerHTML;
+                    document.body.removeChild(tempDiv);
+                    setTimeout(() => {
+                        container.style.opacity = 1;
+                    }, 50);
+                });
+            });
+        });
+    }
+    function generateFormulaHTML(indicator, parsed) {
+        const numerator = parsed.numerator.map(term => {
+            const isComplete = isVariableComplete(term.variable);
+            const varClass = isComplete ? 'input-complete' : 'input-incomplete';
+            const coeffPart = term.coefficient !== 1 ? `\\class{highlight-constant}{${term.coefficient}} \\cdot ` : '';
+            return `${coeffPart}\\class{${varClass}}{${term.variable}}`;
+        }).join(' + ');
+        const denominator = parsed.denominator.map(term => {
+            const isComplete = isVariableComplete(term.variable);
+            const varClass = isComplete ? 'input-complete' : 'input-incomplete';
+            const coeffPart = term.coefficient !== 1 ? `\\class{highlight-constant}{${term.coefficient}} \\cdot ` : '';
+            return `${coeffPart}\\class{${varClass}}{${term.variable}}`;
+        }).join(' + ');
+        let formula = `\\[${indicator} = \\frac{${numerator}}{${denominator}}\\]`;
+        if (parsed.subtractConstant !== 0) {
+            formula = `\\[${indicator} = \\left|\\frac{${numerator}}{${denominator}} - ${parsed.subtractConstant}\\right|\\]`;
+        }
+        return formula;
+    }
+    function isVariableComplete(variable) {
+        const inputs = document.querySelectorAll(`input[data-variable="${variable}"]`);
+        return Array.from(inputs).every(input => {
+            const value = input.value.trim();
+            return value !== '' && !isNaN(value);
+        });
+    }
+    initializeCalculator();
+    document.getElementById('uploadMultiJson').addEventListener('change', function(e) {
+    const files = Array.from(e.target.files);
+    const button = document.getElementById('uploadMultiJsonBtn');
+    if (files.length === 0) {
+        button.textContent = '(чи) Вставте готові JSONи для підрозділів 📚';
+        button.style.opacity = '0.65';
+        return;
+    }
+    const truncatedNames = files.map(file => {
+        const name = file.name;
+        return name.length > 35 ? `${name.substring(0, 35)}` : name;
+    });
+    let lines = [];
+    lines.push(`Додано файлів підрозділів - ${files.length}, а саме:`);
+    lines.push(``);
+if (truncatedNames.length > 20) {
+    truncatedNames.slice(0, 10).forEach(name => lines.push(`• ${name}`));
+    lines.push('( ... )');
+    truncatedNames.slice(-10).forEach(name => lines.push(`• ${name}`));
+} else {
+    truncatedNames.forEach(name => lines.push(`• ${name}`));
+}
+    lines.push(``);
+    lines.push(`Прогорніть нижче та оцініть весь напрям ⬇️`);
+    lines.push(`Чи натисніть знову аби додати інші файли 💾`);
+    button.textContent = lines.join('\n');
+    button.style.opacity = '1';
+});
+    document.getElementById('uploadJson').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = JSON.parse(e.target.result);
+            document.getElementById('calculationName').value = data.calculationName || '';
+            Object.entries(data).forEach(([variable, years]) => {
+                Object.entries(years).forEach(([year, value]) => {
+                    const input = document.querySelector(`input[data-variable="${variable}"][data-year="${year}"]`);
+                    if (input && value !== null) {
+                        input.value = value;
+                    }
+                });
+            });
+            calculateAll();
+            updateFormulaHighlights();
+            updateGroupBackgroundColors();
+        };
+        reader.readAsText(file);
+    });
+function saveDataToJson() {
+    const data = {};
+    data.calculationName = document.getElementById('calculationName').value.trim() || 'Без назви';
+    document.querySelectorAll('[data-variable]').forEach(input => {
+        const varName = input.dataset.variable;
+        const year = parseInt(input.closest('.year-input').querySelector('label').textContent);
+        const value = input.value.trim();
+        if (!data[varName]) data[varName] = {};
+        data[varName][year] = value || null;
+    });
+    data.calculatedResults = indicatorResults;
+    const calculationNameForFile = document.getElementById('calculationName').value.trim();
+    const sanitizedName = calculationNameForFile 
+        ? calculationNameForFile.replace(/ /g, '_') 
+        : 'Без_назви';
+    const now = new Date();
+    const timeStr = [
+        now.getHours().toString().padStart(2, '0'),
+        now.getMinutes().toString().padStart(2, '0'),
+        now.getSeconds().toString().padStart(2, '0')
+    ].join('');
+    const filename = `${sanitizedName}_${timeStr}.json`;
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+    document.getElementById('saveJsonBtn').addEventListener('click', saveDataToJson);
+</script>
+</body>
+</html>
