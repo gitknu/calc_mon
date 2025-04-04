@@ -468,7 +468,7 @@ function initializeCalculator() {
 });
 document.querySelectorAll('.average-input').forEach(input => {
     input.addEventListener('input', function() {
-        // Flag manual entry
+        this.value = this.value.replace(/,/g, '.');
         this.setAttribute('data-manual', '');
         updateGroupBackgroundColors();
     });
