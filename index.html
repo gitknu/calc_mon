@@ -387,9 +387,16 @@ function generateMultiResultsTable() {
     let indicatorValues = {};
 function updateGroupBackgroundColors() {
     document.querySelectorAll('.indicator-group').forEach(group => {
-        const inputs = group.querySelectorAll('input');
-        const allFilled = Array.from(inputs).every(input => input.value.trim() !== '');
-        group.classList.toggle('filled', allFilled);
+        const yearInputs = group.querySelectorAll('.year-inputs input');
+        const averageInput = group.querySelector('.average-input');
+        
+        // Check if all year inputs are filled
+        const allYearsFilled = Array.from(yearInputs).every(input => input.value.trim() !== '');
+        
+        // Check if average was manually entered (has data-manual attribute)
+        const averageManuallyFilled = averageInput.value.trim() !== '' && averageInput.hasAttribute('data-manual');
+        
+        group.classList.toggle('filled', allYearsFilled || averageManuallyFilled);
     });
 }
 function initializeCalculator() {
@@ -459,6 +466,13 @@ function initializeCalculator() {
         updateGroupBackgroundColors(); 
     });
 });
+document.querySelectorAll('.average-input').forEach(input => {
+    input.addEventListener('input', function() {
+        // Flag manual entry
+        this.setAttribute('data-manual', '');
+        updateGroupBackgroundColors();
+    });
+});
         calculateAll();
         updateGroupBackgroundColors();
         adjustIndicatorHeights();
@@ -485,8 +499,10 @@ function calculateAll() {
     }
 });
     Object.entries(averages).forEach(([varName, avg]) => {
-    const avgElement = document.getElementById(`average_${varName}`);
-    if (avgElement) {
+        const avgElement = document.getElementById(`average_${varName}`);
+        if (avgElement) {
+            // Remove manual flag when auto-updating
+            avgElement.removeAttribute('data-manual');
         if (avg === null) {
     avgElement.value = '';
 } else {
